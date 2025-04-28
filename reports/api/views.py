@@ -1,6 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from users.permissions import IsDoctor,IsNurse,IsStudent
+from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from reports.models import Report
 from staff.models import Doctor
 from patients.models import Patient
@@ -9,6 +12,8 @@ from django.shortcuts import get_object_or_404
 
 
 class CreateReport(APIView):
+    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAdminUser,IsDoctor]
     def post(self, request):
         try:
             patient = get_object_or_404(Patient, patient_id=request.data['patient_id'])
@@ -22,6 +27,8 @@ class CreateReport(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ReportList(APIView):
+    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAdminUser,IsDoctor,IsNurse]
     def get(self, request):
         try:
             reports = Report.objects.all()
@@ -31,6 +38,8 @@ class ReportList(APIView):
         return Response(serializer.data)
 
 class ReportDetail(APIView):
+    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAdminUser,IsDoctor,IsNurse]
     def get(self, request, report_id):
         report = get_object_or_404(Report, report_id=report_id)
         serializer = ReportSerializer(report)
@@ -51,6 +60,8 @@ class ReportDetail(APIView):
 
 
 class ReportByPatient(APIView):
+    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAdminUser,IsDoctor,IsNurse]
     def get(self, request):
         patient_id = request.query_params.get('patient_id')
         patient_name = request.query_params.get('patient_name')
@@ -98,6 +109,8 @@ class ReportByPatient(APIView):
 
 
 class ReportByDoctor(APIView):
+    permission_classes=[IsAuthenticated]
+    permission_classes=[IsAdminUser,IsDoctor,IsNurse]
     def get(self, request):
         doctor_name = request.query_params.get('doctor_name')
 

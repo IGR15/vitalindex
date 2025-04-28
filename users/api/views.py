@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework import generics
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.permissions import IsDoctor,IsNurse,IsStudent
 from users.models import User,Role,Permission,UserRolePermission
@@ -13,7 +14,8 @@ from users.api.serializers import (UserSerializer,
 
 
 class AssignPermissionToRole(APIView):
-    permission_classes = [IsAdminUser] 
+    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated] 
 
     def post(self, request):
         role_id = request.data.get('role_id')
@@ -32,6 +34,7 @@ class AssignPermissionToRole(APIView):
         return Response({"message": f"Permission '{permission.name}' assigned to role '{role.name}'"}, status=status.HTTP_201_CREATED)
 
 class UserList(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser] 
     def get(self,request):
         try:
@@ -42,6 +45,7 @@ class UserList(APIView):
         return Response(serializer.data)
         
 class UserDetail(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser] 
 
     def get(self, request, pk):
@@ -71,6 +75,7 @@ class UserDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class UserByRole(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser,IsDoctor,IsNurse] 
 
     def get(self, request, role_id):
@@ -79,6 +84,7 @@ class UserByRole(APIView):
         return Response(serializer.data)   
     
 class SingleUserByRole(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser,IsDoctor,IsNurse] 
 
     def get(self, request, role_id, user_id):
@@ -91,6 +97,7 @@ class SingleUserByRole(APIView):
 
 
 class UserCreate(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
     def post(self,request):
         serializer = UserSerializer(data=request.data)
@@ -103,6 +110,7 @@ class UserCreate(APIView):
 
     
 class  permissionsList(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
     def get(self,request):   
         try:
@@ -114,6 +122,7 @@ class  permissionsList(APIView):
         return Response(serializer.data)
     
 class PermissionsList(APIView):   
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser] 
     def get(self,request):
         try:
@@ -124,6 +133,7 @@ class PermissionsList(APIView):
         return Response(serializer.data)
 
 class CreatePermission(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
     def post(self,request):
         serializer = PermissionSerializer(data=request.data)
@@ -133,6 +143,7 @@ class CreatePermission(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
     
 class Permissions(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
     def get(self, request, pk):
         try:
@@ -165,6 +176,7 @@ class Permissions(APIView):
     
     
 class RoleList(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
     def get(self,request):
         try:
@@ -176,6 +188,7 @@ class RoleList(APIView):
     
     
 class CreateRole(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
     def post(self,request):
         serializer = RoleSerializer(data=request.data)
@@ -186,6 +199,7 @@ class CreateRole(APIView):
 
 
 class RoleDetail(APIView):
+    permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
     def get(self, request, pk):
         try:

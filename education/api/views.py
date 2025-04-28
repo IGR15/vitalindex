@@ -1,12 +1,17 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from users.permissions import IsDoctor,IsNurse,IsStudent
+from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from education.api.serializers import StudentSerializer
 from education.models import Student
 
 
 class CreateStudent(APIView):
+    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAdminUser]
     def post(self, request):
         serializer = StudentSerializer(data=request.data)
         if serializer.is_valid():
@@ -16,6 +21,8 @@ class CreateStudent(APIView):
 
 
 class StudentDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser,IsDoctor]
     def get(self, request, pk):
         try:
             student = get_object_or_404(Student, pk=pk)
@@ -45,6 +52,8 @@ class StudentDetail(APIView):
     
     
 class StudentList(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser,IsDoctor]
     def get(self, request):
         try:
             students = Student.objects.all()

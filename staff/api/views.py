@@ -1,4 +1,7 @@
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
+from users.permissions import IsDoctor,IsNurse,IsStudent
 from rest_framework import status
 from rest_framework.response import Response
 from staff.models import (Doctor,
@@ -13,6 +16,8 @@ from staff.api.serializers import (DoctorSerializer,
 
 
 class CreateDoctor(APIView):
+    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAdminUser]
     def post(self, request):
         serializer = DoctorSerializer(data=request.data)
         if serializer.is_valid():
@@ -21,6 +26,8 @@ class CreateDoctor(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class CreateNurse(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     def post(self, request):
         serializer = NurseSerializer(data=request.data)
         if serializer.is_valid():
@@ -30,6 +37,8 @@ class CreateNurse(APIView):
     
     
 class CreateStudent(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     def post(self, request):
         serializer = StudentSerializer(data=request.data)
         if serializer.is_valid():
@@ -39,6 +48,8 @@ class CreateStudent(APIView):
     
     
 class CreateDepartment(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     def post(self, request):
         serializer = DepartmentSerializer(data=request.data)
         if serializer.is_valid():
@@ -48,6 +59,8 @@ class CreateDepartment(APIView):
     
     
 class DoctorList(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser,IsDoctor]
     def get(self, request):
         try:
             
@@ -59,6 +72,8 @@ class DoctorList(APIView):
 
 
 class DoctorDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser,IsDoctor]
     def get(self, request, pk):
         try:
             doctor = Doctor.objects.get(pk=pk)
@@ -88,6 +103,9 @@ class DoctorDetail(APIView):
         
         
 class NurseList(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsDoctor]
+    
     def get(self, request):
         try:
             nurses = Nurse.objects.all()
@@ -98,6 +116,8 @@ class NurseList(APIView):
     
     
 class NurseDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsDoctor]
     def get(self, request, pk):
         try:
             nurse = Nurse.objects.get(pk=pk)
@@ -128,6 +148,8 @@ class NurseDetail(APIView):
         
         
 class StudentList(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsDoctor]
     def get(self, request):
         try:
             students = Student.objects.all()
@@ -137,6 +159,8 @@ class StudentList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
             
 class StudentDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsDoctor]
     def get(self, request, pk):
         try:
             student = Student.objects.get(pk=pk)
@@ -166,6 +190,8 @@ class StudentDetail(APIView):
         
         
 class DepartmentList(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsDoctor]
     def get(self, request):
         try:
             departments = Department.objects.all()
@@ -175,6 +201,8 @@ class DepartmentList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)   
     
 class DepartmentDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser, IsDoctor]
     def get(self, request, pk):
         try:
             department = Department.objects.get(pk=pk)

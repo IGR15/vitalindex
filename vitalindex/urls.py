@@ -27,4 +27,5 @@ urlpatterns = [
     path('reports/', include('reports.api.urls')),  # Reports app
     path('staff/', include('staff.api.urls')),  # Staff app (Doctors, Nurses, etc.)
     path('users/', include('users.api.urls')),  # User Authentication & Management
+    path('api/', include('api.urls')),
 ]
