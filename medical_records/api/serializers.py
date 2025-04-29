@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from medical_records.models import MedicalRecord,Vitals
+from medical_records.models import MedicalRecord,Vital
 from patients.api.serializers import PatientSerializer
 
 class VitalsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Vitals
+        model = Vital
         fields = ['id', 'temperature', 'heart_rate', 'blood_pressure', 'oxygen_saturation', 'timestamp']
 
 class MedicalRecordSerializer(serializers.ModelSerializer):
@@ -23,6 +23,6 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         medical_record = MedicalRecord.objects.create(**validated_data)
 
         if vitals_data:
-            Vitals.objects.create(record=medical_record, **vitals_data)
+            Vital.objects.create(record=medical_record, **vitals_data)
         
         return medical_record
