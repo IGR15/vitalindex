@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),  # Admin panel
+    path('admin-api/', include('admin_panel.urls')),
     path('alerts/', include('alerts.api.urls')),  # Alerts app
     path('education/', include('education.api.urls')),  # Education app
     path('hospital/', include('hospital.api.urls')),  # Hospital app
