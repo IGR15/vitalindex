@@ -6,7 +6,7 @@ from patients.models import Patient
 from users.permissions import IsDoctor,IsNurse,IsStudent
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
-from medical_records.models import MedicalRecord,Vitals
+from medical_records.models import MedicalRecord,Vital
 from medical_records.api.serializers import MedicalRecordSerializer,VitalsSerializer
 
 
@@ -75,16 +75,16 @@ class VitalsDetail(APIView):
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
     def get(self, request, pk):
         try:
-            vitals = get_object_or_404(Vitals, pk=pk)
-        except Vitals.DoesNotExist:
+            vitals = get_object_or_404(Vital, pk=pk)
+        except Vital.DoesNotExist:
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = VitalsSerializer(vitals)
         return Response(serializer.data, status=status.HTTP_200_OK)  
     
     def put(self, request, pk):
         try:
-            vitals = get_object_or_404(Vitals, pk=pk)
-        except Vitals.DoesNotExist:
+            vitals = get_object_or_404(Vital, pk=pk)
+        except Vital.DoesNotExist:
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = VitalsSerializer(vitals, data=request.data, partial=True)
         if serializer.is_valid():
@@ -94,8 +94,8 @@ class VitalsDetail(APIView):
     
     def delete(self, request, pk):
         try:
-            vitals = get_object_or_404(Vitals, pk=pk)
-        except Vitals.DoesNotExist:
+            vitals = get_object_or_404(Vital, pk=pk)
+        except Vital.DoesNotExist:
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
         vitals.delete()
         return Response({"message": "Vitals deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

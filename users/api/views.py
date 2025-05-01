@@ -11,6 +11,20 @@ from django.shortcuts import get_object_or_404
 from users.api.serializers import (UserSerializer,
                                    PermissionSerializer,
                                    RoleSerializer)
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['role'] = user.role.name if user.role else None
+        token['email'] = user.email
+        return token
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
 
 
 class AssignPermissionToRole(APIView):

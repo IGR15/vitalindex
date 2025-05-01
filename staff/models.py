@@ -30,7 +30,7 @@ class Nurse(models.Model):
 
 class Student(models.Model):
     student_id=models.AutoField(primary_key=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='staff_students')
     academic_course = models.CharField(max_length=255)
     academic_year = models.IntegerField()
     

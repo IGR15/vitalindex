@@ -11,6 +11,20 @@ class User(AbstractUser):  # Custom user model
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='customuser_set', 
+        blank=True,
+        help_text='Groups this user belongs to.',
+        verbose_name='groups',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='customuser_permissions', 
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
 
 class Permission(models.Model):
     name = models.CharField(max_length=100, unique=True)

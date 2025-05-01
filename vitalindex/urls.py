@@ -16,16 +16,39 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="VitalIndex API",
+      default_version='v1',
+      description="API documentation for the VitalIndex hospital system",
+      terms_of_service="https://www.yourhospital.com/terms/",
+      contact=openapi.Contact(email="admin@vitalindex.ps"),
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
+)
+
 
 urlpatterns = [
-    path('admin-api/', include('admin_panel.urls')),
-    path('alerts/', include('alerts.api.urls')),  # Alerts app
-    path('education/', include('education.api.urls')),  # Education app
-    path('hospital/', include('hospital.api.urls')),  # Hospital app
-    path('medical-records/', include('medical_records.api.urls')),  # Medical Records app
-    path('patients/', include('patients.api.urls')),  # Patients app
-    path('reports/', include('reports.api.urls')),  # Reports app
-    path('staff/', include('staff.api.urls')),  # Staff app (Doctors, Nurses, etc.)
-    path('users/', include('users.api.urls')),  # User Authentication & Management
-    path('api/', include('api.urls')),
+    path('admin/', admin.site.urls),  
+
+    path('api/v1/admin-api/', include('admin_panel.api.urls')),
+    path('api/v1/alerts/', include('alerts.api.urls')),
+    path('api/v1/education/', include('education.api.urls')),
+    path('api/v1/hospital/', include('hospital.api.urls')),
+    path('api/v1/medical-records/', include('medical_records.api.urls')),
+    path('api/v1/patients/', include('patients.api.urls')),
+    path('api/v1/reports/', include('reports.api.urls')),
+    path('api/v1/staff/', include('staff.api.urls')),
+    path('api/v1/users/', include('users.api.urls')),
+    path('api/v1/core/', include('api.urls')), 
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
 ]
+

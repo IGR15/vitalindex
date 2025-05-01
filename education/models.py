@@ -2,7 +2,7 @@ from django.db import models
 from users.models import User
 
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='education_students')
     academic_course = models.CharField(max_length=255)
     academic_year = models.IntegerField()
 
