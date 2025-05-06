@@ -26,3 +26,16 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
             Vital.objects.create(record=medical_record, **vitals_data)
         
         return medical_record
+    
+class RedactedMedicalRecordSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MedicalRecord
+        exclude = ['patient']  
+
+    vitals = VitalsSerializer(many=True, read_only=True)
+
+    def get_name(self, obj):
+        return "John Doe"
+    

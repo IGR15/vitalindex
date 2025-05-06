@@ -7,8 +7,44 @@ from users.permissions import IsDoctor,IsNurse,IsStudent
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from medical_records.models import MedicalRecord,Vital
-from medical_records.api.serializers import MedicalRecordSerializer,VitalsSerializer
+from medical_records.api.serializers import MedicalRecordSerializer,VitalsSerializer,RedactedMedicalRecordSerializer
 
+class SingleEducationalRecordView(APIView):
+    permission_classes = [IsAuthenticated, IsStudent]
+
+    def get(self, request, pk):
+        try:
+            record = MedicalRecord.objects.get(pk=pk)
+        except MedicalRecord.DoesNotExist:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if not record.is_public:
+            return Response({"detail": "This record is not public."}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = RedactedMedicalRecordSerializer(record)
+        return Response(serializer.data)
+
+class EducationalRecordsView(APIView):
+    permission_classes = [IsAuthenticated, IsStudent]
+
+    def get(self, request):
+        try:
+            records = MedicalRecord.objects.filter(is_public=True)
+            if not records.exists():
+                return Response(
+                    {"detail": "No educational records found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            serializer = RedactedMedicalRecordSerializer(records, many=True)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response(
+                {"detail": f"Unexpected error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+       
 
 class CreateMedicalRecord(APIView):
     permission_classes = [IsAuthenticated] 

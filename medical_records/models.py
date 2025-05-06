@@ -9,6 +9,7 @@ class MedicalRecord(models.Model):
     diagnosis = models.TextField()
     treatment_plan = models.TextField()
     observations = models.TextField(blank=True, null=True)
+    is_public = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Record for {self.patient.name} - {self.created_date}"
