@@ -1,4 +1,8 @@
+import secrets
+import string
+from django.core.mail import send_mail
 from rest_framework.views import APIView
+from django.conf import settings
 from rest_framework.permissions import IsAdminUser
 from rest_framework import generics
 from rest_framework import status
@@ -111,14 +115,31 @@ class SingleUserByRole(APIView):
 
 
 class UserCreate(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    def post(self,request):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()  
+            # 1. Generate secure password
+            password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+
+            # 2. Save user with password
+            user = serializer.save()
+            user.set_password(password)
+            user.save()
+
+            # 3. Send email with credentials
+            send_mail(
+                subject="Your VitalIndex Login Credentials",
+                message=f"Username: {user.username}\nPassword: {password}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 
