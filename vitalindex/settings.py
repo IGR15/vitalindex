@@ -117,7 +117,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'vitalindex_db',
         'USER': 'root',
-        'PASSWORD': 'vital123s',
+        'PASSWORD': os.getenv("PASSWORD"),
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
