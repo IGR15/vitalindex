@@ -1,0 +1,7 @@
+# Ignore environment and sensitive config
+.env
+*.pyc
+__pycache__/
+db.sqlite3
+# Optionally ignore entire settings if needed
+# vitalindex/settings.py
