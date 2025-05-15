@@ -8,7 +8,16 @@ class Role(models.Model):
         return self.name
 
 class User(AbstractUser):  # Custom user model
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
+    role = models.CharField(
+        max_length=10,
+        choices=[
+            ('Student', 'Student'),
+            ('Nurse', 'Nurse'),
+            ('Doctor', 'Doctor')
+        ],
+        null=True,
+        blank=True
+    )
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     groups = models.ManyToManyField(
@@ -26,20 +35,20 @@ class User(AbstractUser):  # Custom user model
         verbose_name='user permissions',
     )
 
-class Permission(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    level = models.IntegerField(choices=[
-        (1, 'Student'),
-        (2, 'Nurse'),
-        (3, 'Doctor'),
-    ])
+# class Permission(models.Model):
+#     name = models.CharField(max_length=100, unique=True)
+#     level = models.IntegerField(choices=[
+#         (1, 'Student'),
+#         (2, 'Nurse'),
+#         (3, 'Doctor'),
+#     ])
 
-    def __str__(self):
-        return f"{self.name} (Level {self.level})"
+#     def __str__(self):
+#         return f"{self.name} (Level {self.level})"
 
-class UserRolePermission(models.Model):
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="roles")
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name="permissions")
+# class UserRolePermission(models.Model):
+#     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="roles")
+#     permission = models.ForeignKey(Permission, on_delete=models.CASCADE, related_name="permissions")
 
-    class Meta:
-        unique_together = ('role', 'permission')
+#     class Meta:
+#         unique_together = ('role', 'permission')

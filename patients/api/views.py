@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from patients.models import Patient
 from users.permissions import IsDoctor,IsNurse,IsStudent
 from rest_framework.permissions import IsAdminUser
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
 from patients.api.serializers import PatientSerializer
 from django.shortcuts import get_object_or_404
@@ -12,6 +13,7 @@ from django.shortcuts import get_object_or_404
 class CreatePatient(APIView):
     permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser,IsDoctor]
+    @swagger_auto_schema(request_body=PatientSerializer)
     def post(self, request):
         serializer = PatientSerializer(data=request.data)
         if serializer.is_valid():

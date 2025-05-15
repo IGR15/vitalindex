@@ -1,8 +1,6 @@
 from django.urls import path
 from users.api.views import (
-    UserList, UserDetail, UserByRole, SingleUserByRole, UserCreate,
-    PermissionsList, CreatePermission, Permissions,
-    RoleList, CreateRole, RoleDetail,
+    UserList, UserDetail, UserByRole, SingleUserByRole, UserCreate, RoleDetail,
     CustomTokenObtainPairView  
 )
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -20,12 +18,12 @@ urlpatterns = [
     path('users/role/<int:role_id>/<int:user_id>/', SingleUserByRole.as_view(), name='single-user-by-role'),  
 
     # Permissions APIs
-    path('permissions/', PermissionsList.as_view(), name='permissions-list'), 
-    path('permissions/create/', CreatePermission.as_view(), name='create-permission'),  
-    path('permissions/<int:pk>/', Permissions.as_view(), name='permission-detail'),  
+    # path('permissions/', PermissionsList.as_view(), name='permissions-list'), 
+    # path('permissions/create/', CreatePermission.as_view(), name='create-permission'),  
+    # path('permissions/<int:pk>/', Permissions.as_view(), name='permission-detail'),  
 
     # Roles APIs
-    path('roles/', RoleList.as_view(), name='roles-list'),  
-    path('roles/create/', CreateRole.as_view(), name='create-role'),  
+    # path('roles/', RoleList.as_view(), name='roles-list'),  
+    # path('roles/create/', CreateRole.as_view(), name='create-role'),  
     path('roles/<int:pk>/', RoleDetail.as_view(), name='role-detail'), 
 ]

@@ -9,14 +9,15 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.permissions import IsDoctor,IsNurse,IsStudent
-from users.models import User,Role,Permission,UserRolePermission
+from users.models import User,Role
 from users.utiles import check_user_permission_level
 from django.shortcuts import get_object_or_404
 from users.api.serializers import (UserSerializer,
-                                   PermissionSerializer,
                                    RoleSerializer)
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -31,40 +32,24 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 
-class AssignPermissionToRole(APIView):
-    permission_classes = [IsAdminUser]
-    permission_classes = [IsAuthenticated] 
+# --- User Views ---
 
-    def post(self, request):
-        role_id = request.data.get('role_id')
-        permission_id = request.data.get('permission_id')
-
-        if not role_id or not permission_id:
-            return Response({"error": "role_id and permission_id are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        role = get_object_or_404(Role, pk=role_id)
-        permission = get_object_or_404(Permission, pk=permission_id)
-
-        if UserRolePermission.objects.filter(role=role, permission=permission).exists():
-            return Response({"message": "Permission already assigned to this role"}, status=status.HTTP_200_OK)
-
-        UserRolePermission.objects.create(role=role, permission=permission)
-        return Response({"message": f"Permission '{permission.name}' assigned to role '{role.name}'"}, status=status.HTTP_201_CREATED)
-
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
 class UserList(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser] 
-    def get(self,request):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    def get(self, request):
         try:
-            user=User.objects.all()
+            user = User.objects.all()
         except User.DoesNotExist:
-            return Response({'error':'user not found'},status=status.HTTP_404_NOT_FOUND)
-        serializer = UserSerializer(user)
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user, many=True)
         return Response(serializer.data)
-        
+
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
+@method_decorator(name='put', decorator=swagger_auto_schema(tags=['Users']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['Users']))
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser] 
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request, pk):
         try:
@@ -72,38 +57,39 @@ class UserDetail(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
-        return Response(serializer.data)    
-    def put(self,request,pk):
+        return Response(serializer.data)
+
+    def put(self, request, pk):
         try:
-            user=User.objects.get(pk=pk)
-            serializer = UserSerializer(user,data=request.data)
+            user = User.objects.get(pk=pk)
+            serializer = UserSerializer(user, data=request.data)
         except User.DoesNotExist:
-            return Response({'error':'user not found'},status=status.HTTP_404_NOT_FOUND)    
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         if serializer.is_valid():
-            serializer.save()  
+            serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
-    
-    def delete(self,request,pk):
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
         try:
-            user=User.objects.get(pk=pk)
+            user = User.objects.get(pk=pk)
             user.delete()
         except User.DoesNotExist:
-            return Response({'error':'user not found'},status=status.HTTP_404_NOT_FOUND)    
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
 class UserByRole(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser,IsDoctor,IsNurse] 
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
 
     def get(self, request, role_id):
         users = User.objects.filter(role__id=role_id)
         serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)   
-    
+        return Response(serializer.data)
+
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
 class SingleUserByRole(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser,IsDoctor,IsNurse] 
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
 
     def get(self, request, role_id, user_id):
         try:
@@ -111,24 +97,19 @@ class SingleUserByRole(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found in this role'}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
-        return Response(serializer.data)     
+        return Response(serializer.data)
 
-
+@method_decorator(name='post', decorator=swagger_auto_schema(tags=['Users']))
 class UserCreate(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            # 1. Generate secure password
             password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
-
-            # 2. Save user with password
             user = serializer.save()
             user.set_password(password)
             user.save()
-
-            # 3. Send email with credentials
             send_mail(
                 subject="Your VitalIndex Login Credentials",
                 message=f"Username: {user.username}\nPassword: {password}",
@@ -136,106 +117,29 @@ class UserCreate(APIView):
                 recipient_list=[user.email],
                 fail_silently=False,
             )
-
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
+# --- Role Views ---
 
-    
-class  permissionsList(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    def get(self,request):   
-        try:
-            
-            permissions = Permission.objects.all()
-        except Permission.DoesNot:
-            return Response({'error':'permissions not found'},status=status.HTTP_404_NOT_FOUND)
-        serializer = PermissionSerializer(permissions, many=True)
-        return Response(serializer.data)
-    
-class PermissionsList(APIView):   
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser] 
-    def get(self,request):
-        try:
-            permissions = Permission.objects.all()
-        except Permission.DoesNotExist:
-            return Response({'error':'permissions not found'},status=status.HTTP_404_NOT_FOUND)
-        serializer = PermissionSerializer(permissions, many=True)
-        return Response(serializer.data)
-
-class CreatePermission(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    def post(self,request):
-        serializer = PermissionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()  
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
-    
-class Permissions(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    def get(self, request, pk):
-        try:
-            permission = Permission.objects.get(pk=pk)
-        except Permission.DoesNotExist:
-            return Response({'error':'permission not found'},status=status.HTTP_404_NOT_FOUND)
-        serializer = PermissionSerializer(permission)
-        return Response(serializer.data)
-    
-    def put(self,request,pk):
-        try:
-            permission=Permission.objects.get(pk=pk)
-            serializer = PermissionSerializer(permission,data=request.data)
-        except Permission.DoesNotExist:
-            return Response({'error':'permission not found'},status=status.HTTP_404_NOT_FOUND)    
-        if serializer.is_valid():
-            serializer.save()  
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self,request,pk):
-        try:
-            permission=Permission.objects.get(pk=pk)
-            permission.delete()
-        except Permission.DoesNotExist:
-            return Response({'error':'permission not found'},status=status.HTTP_404_NOT_FOUND)    
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    
-    
-    
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Roles']))
 class RoleList(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    def get(self,request):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
         try:
             roles = Role.objects.all()
         except Role.DoesNotExist:
-            return Response({'error':'roles not found'},status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'roles not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = RoleSerializer(roles, many=True)
         return Response(serializer.data)
-    
-    
-class CreateRole(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    def post(self,request):
-        serializer = RoleSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()  
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
 
-
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Roles']))
+@method_decorator(name='put', decorator=swagger_auto_schema(tags=['Roles']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['Roles']))
 class RoleDetail(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
     def get(self, request, pk):
         try:
             role = Role.objects.get(pk=pk)
@@ -243,22 +147,22 @@ class RoleDetail(APIView):
             return Response({'error': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = RoleSerializer(role)
         return Response(serializer.data)
+
     def put(self, request, pk):
         try:
-            role=Role.objects.get(pk=pk)
-            serializer = RoleSerializer(role,data=request.data)
+            role = Role.objects.get(pk=pk)
+            serializer = RoleSerializer(role, data=request.data)
         except Role.DoesNotExist:
-            return Response({'error':'role not found'},status=status.HTTP_404_NOT_FOUND)    
+            return Response({'error': 'role not found'}, status=status.HTTP_404_NOT_FOUND)
         if serializer.is_valid():
-            serializer.save()  
+            serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self,request, pk):
+
+    def delete(self, request, pk):
         try:
-            role=Role.objects.get(pk=pk)
+            role = Role.objects.get(pk=pk)
             role.delete()
         except Role.DoesNotExist:
-            return Response({'error':'role not found'},status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'role not found'}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
-    

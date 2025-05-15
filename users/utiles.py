@@ -1,6 +1,9 @@
 def check_user_permission_level(user, required_level):
-    return (
-        hasattr(user, "role") and 
-        user.role and 
-        user.role.permissions.filter(level__gte=required_level).exists()
-    )
+    role_levels = {
+        'Student': 1,
+        'Nurse': 2,
+        'Doctor': 3
+    }
+
+    user_level = role_levels.get(user.role, 0)
+    return user_level >= required_level
