@@ -8,8 +8,10 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
 from patients.api.serializers import PatientSerializer
 from django.shortcuts import get_object_or_404
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
 
-
+@method_decorator(name='post', decorator=swagger_auto_schema(tags=['patient']))
 class CreatePatient(APIView):
     permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser,IsDoctor]
@@ -22,7 +24,7 @@ class CreatePatient(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
-    
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['patient']))
 class PatientList(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
@@ -34,7 +36,9 @@ class PatientList(APIView):
         serializer = PatientSerializer(patients, many=True)
         return Response(serializer.data)
     
-    
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['patient']))
+@method_decorator(name='put', decorator=swagger_auto_schema(tags=['patient']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['patient']))
 class PatientDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
@@ -68,7 +72,9 @@ class PatientDetail(APIView):
         except Patient.DoesNotExist:
             return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['patient']))
+@method_decorator(name='put', decorator=swagger_auto_schema(tags=['patient']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['patient']))
 class PatientDetailByName(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]

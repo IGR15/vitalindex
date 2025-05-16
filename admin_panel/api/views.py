@@ -7,8 +7,11 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from patients.models import Patient
 import psutil
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
 
 User = get_user_model()
+
 
 def get_logged_in_users():
     active_sessions = Session.objects.filter(expire_date__gte=now())
@@ -20,6 +23,7 @@ def get_logged_in_users():
             user_ids.append(user_id)
     return User.objects.filter(id__in=user_ids)
 
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['admin_panel']))
 class SystemStatsView(APIView):
     permission_classes = [IsAuthenticated]  # Only authenticated users allowed
     permission_classes = [IsAdminUser]  # Only admin/staff users allowed

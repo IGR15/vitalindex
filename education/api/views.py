@@ -9,7 +9,10 @@ from education.api.serializers import StudentSerializer
 from education.models import Student, CaseStudy
 from medical_records.models import MedicalRecord
 from medical_records.api.serializers import RedactedMedicalRecordSerializer
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
 
+@method_decorator(name='post', decorator=swagger_auto_schema(tags=['education']))
 class SaveCaseStudyView(APIView):
     permission_classes = [IsAuthenticated, IsStudent]
 
@@ -37,7 +40,8 @@ class SaveCaseStudyView(APIView):
         except Exception as e:
             return Response({"detail": f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['education']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['education']))
 class MyCaseStudiesView(APIView):
     permission_classes = [IsAuthenticated, IsStudent]
 
@@ -72,57 +76,3 @@ class MyCaseStudiesView(APIView):
 
         except Exception as e:
             return Response({"detail": f"Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)    
-
-
-class CreateStudent(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    def post(self, request):
-        serializer = StudentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class StudentDetail(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser,IsDoctor]
-    def get(self, request, pk):
-        try:
-            student = get_object_or_404(Student, pk=pk)
-        except Student.DoesNotExist:
-            return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = StudentSerializer(student)
-        return Response(serializer.data)
-    
-    def put(self, request, pk):
-        try:
-            student = get_object_or_404(Student, pk=pk)
-        except Student.DoesNotExist:
-            return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = StudentSerializer(student, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, pk):
-        try:
-            student = get_object_or_404(Student, pk=pk)
-            student.delete()
-        except Student.DoesNotExist:
-            return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"message": "Student deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-    
-    
-class StudentList(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser,IsDoctor]
-    def get(self, request):
-        try:
-            students = Student.objects.all()
-        except Student.DoesNotExist:
-            return Response({"error": "Students not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = StudentSerializer(students, many=True)  
-        return Response(serializer.data)  

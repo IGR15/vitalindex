@@ -8,7 +8,10 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from medical_records.models import MedicalRecord,Vital
 from medical_records.api.serializers import MedicalRecordSerializer,VitalsSerializer,RedactedMedicalRecordSerializer
+from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
 
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
 class SingleEducationalRecordView(APIView):
     permission_classes = [IsAuthenticated, IsStudent]
 
@@ -24,6 +27,7 @@ class SingleEducationalRecordView(APIView):
         serializer = RedactedMedicalRecordSerializer(record)
         return Response(serializer.data)
 
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
 class EducationalRecordsView(APIView):
     permission_classes = [IsAuthenticated, IsStudent]
 
@@ -46,6 +50,7 @@ class EducationalRecordsView(APIView):
             )
        
 
+@method_decorator(name='post', decorator=swagger_auto_schema(tags=['medical_records']))
 class CreateMedicalRecord(APIView):
     permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
@@ -56,6 +61,7 @@ class CreateMedicalRecord(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@method_decorator(name='post', decorator=swagger_auto_schema(tags=['vitals']))
 class CreateVitals(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
@@ -74,7 +80,10 @@ class CreateVitals(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
+@method_decorator(name='put', decorator=swagger_auto_schema(tags=['medical_records']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['medical_records']))
 class MedicalRecordDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
@@ -105,7 +114,9 @@ class MedicalRecordDetail(APIView):
         medical_record.delete()
         return Response({"message": "Medical record deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     
-
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['vitals']))
+@method_decorator(name='put', decorator=swagger_auto_schema(tags=['vitals']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['vitals']))
 class VitalsDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
@@ -136,6 +147,9 @@ class VitalsDetail(APIView):
         vitals.delete()
         return Response({"message": "Vitals deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
+@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
+@method_decorator(name='put', decorator=swagger_auto_schema(tags=['medical_records']))
+@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['medical_records']))
 class MedicalRecordsByPatientAPIView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
     def get(self, request, patient_id):
