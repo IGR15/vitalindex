@@ -14,3 +14,6 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vitalindex.settings')
 
 application = get_wsgi_application()
+from dotenv import load_dotenv
+load_dotenv('/home/vitalindex/vitalindex/vitalindex/.env')
+

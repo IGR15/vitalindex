@@ -16,10 +16,10 @@ from staff.api.serializers import (DoctorSerializer,
                                    StudentSerializer,
                                    DepartmentSerializer,)
 
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
 class CreateDoctor(APIView):
     permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
+    @method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
     def post(self, request):
         serializer = DoctorSerializer(data=request.data)
         if serializer.is_valid():
@@ -27,10 +27,10 @@ class CreateDoctor(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
 class CreateNurse(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
+    @method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
     def post(self, request):
         serializer = NurseSerializer(data=request.data)
         if serializer.is_valid():
@@ -38,10 +38,10 @@ class CreateNurse(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
 class CreateStudent(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
+    @method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
     def post(self, request):
         serializer = StudentSerializer(data=request.data)
         if serializer.is_valid():
@@ -49,10 +49,10 @@ class CreateStudent(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
 class CreateDepartment(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
+    @method_decorator(name='post', decorator=swagger_auto_schema(tags=['create doctor,nurse,student,']))
     def post(self, request):
         serializer = DepartmentSerializer(data=request.data)
         if serializer.is_valid():
@@ -60,10 +60,10 @@ class CreateDepartment(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
     
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['doctor']))
 class DoctorList(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['doctor']))
     def get(self, request):
         try:
             
@@ -73,12 +73,10 @@ class DoctorList(APIView):
         serializer = DoctorSerializer(doctors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['doctor']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['doctor']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['doctor']))
 class DoctorDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['doctor']))
     def get(self, request, pk):
         try:
             doctor = Doctor.objects.get(pk=pk)
@@ -87,6 +85,7 @@ class DoctorDetail(APIView):
         except Doctor.DoesNotExist:
             return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)    
         
+    @method_decorator(name='put', decorator=swagger_auto_schema(tags=['doctor']))
     def put(self,request, pk):
         try:
             doctor = Doctor.objects.get(pk=pk)
@@ -98,6 +97,7 @@ class DoctorDetail(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['doctor']))
     def delete(self, request, pk):
         try:
             doctor = Doctor.objects.get(pk=pk)
@@ -106,11 +106,11 @@ class DoctorDetail(APIView):
         except Doctor.DoesNotExist:
             return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)
         
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['nurse']))
 class NurseList(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser, IsDoctor]
     
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['nurse']))
     def get(self, request):
         try:
             nurses = Nurse.objects.all()
@@ -119,12 +119,10 @@ class NurseList(APIView):
         serializer = NurseSerializer(nurses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['nurse']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['nurse']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['nurse']))
 class NurseDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser, IsDoctor]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['nurse']))
     def get(self, request, pk):
         try:
             nurse = Nurse.objects.get(pk=pk)
@@ -133,6 +131,7 @@ class NurseDetail(APIView):
         except Nurse.DoesNotExist:
             return Response({"error": "Nurse not found"}, status=status.HTTP_404_NOT_FOUND)
         
+    @method_decorator(name='put', decorator=swagger_auto_schema(tags=['nurse']))
     def put(self,request,pk):
         try:
             nurse = Nurse.objects.get(pk=pk)
@@ -144,6 +143,7 @@ class NurseDetail(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['nurse']))
     def delete(self, request, pk):
         try:
             nurse = Nurse.objects.get(pk=pk)
@@ -153,10 +153,10 @@ class NurseDetail(APIView):
             return Response({"error": "Nurse not found"}, status=status.HTTP_404_NOT_FOUND)
         
         
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['student']))
 class StudentList(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser, IsDoctor]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['student']))
     def get(self, request):
         try:
             students = Student.objects.all()
@@ -165,12 +165,10 @@ class StudentList(APIView):
         serializer = StudentSerializer(students, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['student']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['student']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['student']))
 class StudentDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser, IsDoctor]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['student']))
     def get(self, request, pk):
         try:
             student = Student.objects.get(pk=pk)
@@ -179,6 +177,7 @@ class StudentDetail(APIView):
         except Student.DoesNotExist:
             return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
         
+    @method_decorator(name='put', decorator=swagger_auto_schema(tags=['student']))
     def put(self,request,pk):
         try:
             student = Student.objects.get(pk=pk)
@@ -190,6 +189,7 @@ class StudentDetail(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)   
     
+    @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['student']))
     def delete(self, request, pk):
         try:
             student = Student.objects.get(pk=pk)
@@ -198,12 +198,10 @@ class StudentDetail(APIView):
         except Student.DoesNotExist:
             return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
         
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['department']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['department']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['department']))
 class DepartmentList(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser, IsDoctor]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['department']))
     def get(self, request):
         try:
             departments = Department.objects.all()
@@ -215,6 +213,7 @@ class DepartmentList(APIView):
 class DepartmentDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser, IsDoctor]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['department']))
     def get(self, request, pk):
         try:
             department = Department.objects.get(pk=pk)
@@ -222,7 +221,8 @@ class DepartmentDetail(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Department.DoesNotExist:
             return Response({"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
+    @method_decorator(name='put', decorator=swagger_auto_schema(tags=['department']))
     def put(self,request,pk):
         try:
             department = Department.objects.get(pk=pk)
@@ -233,7 +233,8 @@ class DepartmentDetail(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['department']))
     def delete(self, request, pk):
         try:
             department = Department.objects.get(pk=pk)

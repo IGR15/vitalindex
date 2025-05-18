@@ -11,10 +11,10 @@ from medical_records.api.serializers import MedicalRecordSerializer,VitalsSerial
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
 class SingleEducationalRecordView(APIView):
     permission_classes = [IsAuthenticated, IsStudent]
 
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
     def get(self, request, pk):
         try:
             record = MedicalRecord.objects.get(pk=pk)
@@ -27,10 +27,10 @@ class SingleEducationalRecordView(APIView):
         serializer = RedactedMedicalRecordSerializer(record)
         return Response(serializer.data)
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
 class EducationalRecordsView(APIView):
     permission_classes = [IsAuthenticated, IsStudent]
 
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
     def get(self, request):
         try:
             records = MedicalRecord.objects.filter(is_public=True)
@@ -50,10 +50,10 @@ class EducationalRecordsView(APIView):
             )
        
 
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['medical_records']))
 class CreateMedicalRecord(APIView):
     permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
+    @method_decorator(name='post', decorator=swagger_auto_schema(tags=['medical_records']))
     def post(self, request):
         serializer = MedicalRecordSerializer(data=request.data)
         if serializer.is_valid():
@@ -61,10 +61,10 @@ class CreateMedicalRecord(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['vitals']))
 class CreateVitals(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
+    @method_decorator(name='post', decorator=swagger_auto_schema(tags=['vitals']))
     def post(self, request):
         medical_record_id = request.data.get("medical_record_id") 
 
@@ -81,12 +81,11 @@ class CreateVitals(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['medical_records']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['medical_records']))
+
 class MedicalRecordDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
     def get(self, request, record_id):
         try: 
             medical_record = get_object_or_404(MedicalRecord, id=record_id)
@@ -94,7 +93,8 @@ class MedicalRecordDetail(APIView):
             return Response({"error": "Medical record not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = MedicalRecordSerializer(medical_record)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+    @method_decorator(name='put', decorator=swagger_auto_schema(tags=['medical_records']))
+
     def put(self, request, record_id):
         try:
             medical_record = get_object_or_404(MedicalRecord, id=record_id)
@@ -105,7 +105,7 @@ class MedicalRecordDetail(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['medical_records']))
     def delete(self, request, record_id):
         try:
             medical_record = get_object_or_404(MedicalRecord, id=record_id)
@@ -114,12 +114,13 @@ class MedicalRecordDetail(APIView):
         medical_record.delete()
         return Response({"message": "Medical record deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['vitals']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['vitals']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['vitals']))
+
+
+
 class VitalsDetail(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser,IsDoctor,IsNurse]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['vitals']))
     def get(self, request, pk):
         try:
             vitals = get_object_or_404(Vital, pk=pk)
@@ -127,7 +128,7 @@ class VitalsDetail(APIView):
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = VitalsSerializer(vitals)
         return Response(serializer.data, status=status.HTTP_200_OK)  
-    
+    @method_decorator(name='put', decorator=swagger_auto_schema(tags=['vitals']))
     def put(self, request, pk):
         try:
             vitals = get_object_or_404(Vital, pk=pk)
@@ -138,7 +139,7 @@ class VitalsDetail(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['vitals']))
     def delete(self, request, pk):
         try:
             vitals = get_object_or_404(Vital, pk=pk)
@@ -147,11 +148,10 @@ class VitalsDetail(APIView):
         vitals.delete()
         return Response({"message": "Vitals deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['medical_records']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['medical_records']))
+
 class MedicalRecordsByPatientAPIView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
+    @method_decorator(name='get', decorator=swagger_auto_schema(tags=['medical_records']))
     def get(self, request, patient_id):
         try:
             patient = get_object_or_404(Patient, id=patient_id)
