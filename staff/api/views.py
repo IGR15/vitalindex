@@ -28,8 +28,10 @@ from staff.api.serializers import (DoctorSerializer,
 class IsAdminOrDoctor(BasePermission):
     def has_permission(self, request, view):
         return (
-            request.user.is_authenticated and
-            (request.user.role == 'Admin' or request.user.role == 'Doctor')
+            request.user.is_authenticated and (
+                request.user.is_staff or       # Django admin
+                getattr(request.user, 'role', None) == 'Doctor'  # Custom role
+            )
         )
 class CreateDoctor(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
