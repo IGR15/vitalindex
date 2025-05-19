@@ -49,82 +49,69 @@ class DoctorSerializer(serializers.ModelSerializer):
         return instance
     
 class NurseSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(source='user.id', read_only=True)
-    username = serializers.CharField(source='user.username', required=True)
-    email = serializers.EmailField(source='user.email', required=True)
-    phone = serializers.CharField(source='user.phone', required=False, allow_null=True)
-    address = serializers.CharField(source='user.address', required=False, allow_null=True)
-
+    user = UserSerializer(required=True)
+    
     class Meta:
         model = Nurse
         fields = [
-            'nurse_id', 'user_id', 'username', 'email', 'phone', 'address',
-            'department', 'assigned_shift'
+            'nurse_id',
+            'user',
+            'department',
+            'assigned_shift'
         ]
-
     def create(self, validated_data):
-        """
-        Create a User first, then link it to the Nurse model.
-        """
         user_data = validated_data.pop('user')
+        user_data['role'] = 'Nurse' 
         user = User.objects.create(**user_data)
-        nurse = Nurse.objects.create(user=user, **validated_data)
-        return nurse
-
+        doctor = Student.objects.create(user=user, **validated_data)
+        return Nurse
+    
     def update(self, instance, validated_data):
-        """
-        Update both User and Nurse models.
-        """
         user_data = validated_data.pop('user', {})
         user = instance.user
 
         for attr, value in user_data.items():
-            setattr(user, attr, value)
+            # Prevent changing role externally
+            if attr != 'role':
+                setattr(user, attr, value)
         user.save()
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
         return instance
+    
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(source='user.id', read_only=True)
-    username = serializers.CharField(source='user.username', required=True)
-    email = serializers.EmailField(source='user.email', required=True)
-    phone = serializers.CharField(source='user.phone', required=False, allow_null=True)
-    address = serializers.CharField(source='user.address', required=False, allow_null=True)
-
+    user = UserSerializer(required=True)
+     
     class Meta:
         model = Student
         fields = [
-            'student_id', 'user_id', 'username', 'email', 'phone', 'address',
-            'academic_course', 'academic_year'
+            'student_id',
+            'user',
+            'academic_course',
+            'academic_year'
         ]
-
     def create(self, validated_data):
-        """
-        Create a User first, then link it to the Student model.
-        """
         user_data = validated_data.pop('user')
+        user_data['role'] = 'Student' 
         user = User.objects.create(**user_data)
-        student = Student.objects.create(user=user, **validated_data)
-        return student
-
+        doctor = Student.objects.create(user=user, **validated_data)
+        return Student
+    
     def update(self, instance, validated_data):
-        """
-        Update both User and Student models.
-        """
         user_data = validated_data.pop('user', {})
         user = instance.user
 
         for attr, value in user_data.items():
-            setattr(user, attr, value)
+            # Prevent changing role externally
+            if attr != 'role':
+                setattr(user, attr, value)
         user.save()
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
         return instance

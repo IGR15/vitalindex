@@ -15,9 +15,7 @@ from staff.models import (Doctor,
                           Nurse,
                           Department,
                           Student,)
-from users.models import User
 import secrets
-from rest_framework.permissions import BasePermission
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 from staff.api.serializers import (DoctorSerializer,
@@ -25,15 +23,6 @@ from staff.api.serializers import (DoctorSerializer,
                                    StudentSerializer,
                                    DepartmentSerializer,)
 
-
-# class IsAdminOrDoctor(BasePermission):
-#     def has_permission(self, request, view):
-#         return (
-#             request.user.is_authenticated and (
-#                 request.user.is_staff or       # Django admin
-#                 getattr(request.user, 'role', None) == 'Doctor'  # Custom role
-#             )
-#         )
 class CreateDoctor(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
