@@ -99,10 +99,13 @@ class SingleUserByRole(APIView):
             return Response({'error': 'User not found in this role'}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
         return Response(serializer.data)
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['Users']))
+
 class UserCreate(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
-    @swagger_auto_schema(request_body=UserSerializer, tags=['Users'])
+    @swagger_auto_schema(
+        request_body=UserSerializer,
+        tags=["Users"]
+    )
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
