@@ -36,15 +36,18 @@ class CreateDoctor(APIView):
 
     @swagger_auto_schema(
         request_body=DoctorSerializer,
-        tags=['create doctor']
+        tags=['create doctor,nurse,student']
     )
     def post(self, request):
         data = request.data.copy()
 
-        # Set password
+        user_data = data.get('user')
+        if not user_data or not isinstance(user_data, dict):
+            return Response({"user": ["This field is required and must be an object."]},
+                            status=status.HTTP_400_BAD_REQUEST)
         password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
-        data['user']["role"] = "Doctor"
-        data['user']["password"] = password  # Inject password into serializer
+        user_data["role"] = "Doctor"
+        user_data["password"] = password
 
         serializer = DoctorSerializer(data=data)
         if serializer.is_valid():
@@ -61,20 +64,23 @@ class CreateDoctor(APIView):
             )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CreateNurse(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
-    @swagger_auto_schema(request_body=NurseSerializer, tags=['create doctor,nurse,student,'])
+    @swagger_auto_schema(request_body=NurseSerializer, tags=['create doctor,nurse,student'])
     def post(self, request):
         data = request.data.copy()
-
-        # Set password
+        user_data = data.get('user')
+        if not user_data or not isinstance(user_data, dict):
+            return Response({"user": ["This field is required and must be an object."]},
+                            status=status.HTTP_400_BAD_REQUEST)
         password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
         data['user']["role"] = "Nurse"
-        data['user']["password"] = password  # Inject password into serializer
+        data['user']["password"] = password  
 
         serializer = NurseSerializer(data=data)
         if serializer.is_valid():
@@ -96,9 +102,13 @@ class CreateNurse(APIView):
 class CreateStudent(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
-    @swagger_auto_schema(request_body=StudentSerializer,tags=['create doctor,nurse,student,'])
+    @swagger_auto_schema(request_body=StudentSerializer,tags=['create doctor,nurse,student'])
     def post(self, request):
         data = request.data.copy()
+        user_data = data.get('user')
+        if not user_data or not isinstance(user_data, dict):
+            return Response({"user": ["This field is required and must be an object."]},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Set password
         password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
@@ -125,7 +135,7 @@ class CreateStudent(APIView):
 class CreateDepartment(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
-    @swagger_auto_schema(request_body=DepartmentSerializer,tags=['create doctor,nurse,student,'])
+    @swagger_auto_schema(request_body=DepartmentSerializer,tags=['create doctor,nurse,student'])
     def post(self, request):
         serializer = DepartmentSerializer(data=request.data)
         if serializer.is_valid():
