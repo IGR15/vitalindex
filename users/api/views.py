@@ -34,7 +34,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 # --- User Views ---
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
 class UserList(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     @swagger_auto_schema(tags=['Users'])
@@ -46,9 +45,9 @@ class UserList(APIView):
         serializer = UserSerializer(user, many=True)
         return Response(serializer.data)
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['Users']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['Users']))
+# @method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
+# @method_decorator(name='put', decorator=swagger_auto_schema(tags=['Users']))
+# @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['Users']))
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     @swagger_auto_schema(tags=['Users'])
@@ -71,7 +70,7 @@ class UserDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    
+    @swagger_auto_schema(tags=['Users'])
     def delete(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
@@ -80,18 +79,19 @@ class UserDetail(APIView):
             return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
     
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
+# @method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
 class UserByRole(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
+    @swagger_auto_schema(tags=['Users'])
     def get(self, request, role_id):
         users = User.objects.filter(role__id=role_id)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
+# @method_decorator(name='get', decorator=swagger_auto_schema(tags=['Users']))
 class SingleUserByRole(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
 
-   
+    @swagger_auto_schema(tags=['Users'])
     def get(self, request, role_id, user_id):
         try:
             user = User.objects.get(role__id=role_id, id=user_id)
@@ -135,9 +135,9 @@ class RoleList(APIView):
             return Response({'error': 'roles not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = RoleSerializer(roles, many=True)
         return Response(serializer.data)
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Roles']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['Roles']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['Roles']))
+# @method_decorator(name='get', decorator=swagger_auto_schema(tags=['Roles']))
+# @method_decorator(name='put', decorator=swagger_auto_schema(tags=['Roles']))
+# @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['Roles']))
 class RoleDetail(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     def get(self, request, pk):
