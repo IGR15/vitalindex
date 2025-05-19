@@ -69,8 +69,7 @@ class CreateDoctor(APIView):
 
 
 class CreateNurse(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     @swagger_auto_schema(request_body=NurseSerializer, tags=['create doctor,nurse,student'])
     def post(self, request):
         data = request.data.copy()
@@ -100,8 +99,7 @@ class CreateNurse(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class CreateStudent(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     @swagger_auto_schema(request_body=StudentSerializer,tags=['create doctor,nurse,student'])
     def post(self, request):
         data = request.data.copy()
@@ -133,8 +131,7 @@ class CreateStudent(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class CreateDepartment(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     @swagger_auto_schema(request_body=DepartmentSerializer,tags=['create doctor,nurse,student'])
     def post(self, request):
         serializer = DepartmentSerializer(data=request.data)
@@ -144,8 +141,7 @@ class CreateDepartment(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
     
 class DoctorList(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser,IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
     @swagger_auto_schema(tags=['doctor'])
     def get(self, request):
         try:
@@ -157,8 +153,7 @@ class DoctorList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DoctorDetail(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser,IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
     @swagger_auto_schema(tags=['doctor'])
     def get(self, request, pk):
         try:
@@ -190,8 +185,7 @@ class DoctorDetail(APIView):
             return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)
         
 class NurseList(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
     
     @swagger_auto_schema(tags=['nurse'])
     def get(self, request):
@@ -203,8 +197,7 @@ class NurseList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class NurseDetail(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
     @swagger_auto_schema(tags=['nurse'])
     def get(self, request, pk):
         try:
@@ -237,8 +230,7 @@ class NurseDetail(APIView):
         
         
 class StudentList(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
     @swagger_auto_schema(tags=['student'])
     def get(self, request):
         try:
@@ -249,8 +241,7 @@ class StudentList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class StudentDetail(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
     @swagger_auto_schema(tags=['student'])
     def get(self, request, pk):
         try:
@@ -282,8 +273,7 @@ class StudentDetail(APIView):
             return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
         
 class DepartmentList(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
     @swagger_auto_schema(tags=['department'])
     def get(self, request):
         try:
