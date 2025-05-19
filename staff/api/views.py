@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
 from users.permissions import (IsDoctor,IsNurse,IsStudent,
-                               IsAdminOrDoctor,
                                IsAdminOrDoctorOrNurse,
                                IsAdminOrDoctorOrNurseOrStudent,
                                IsAdminOrDoctorOrStudent)
@@ -17,6 +16,7 @@ from staff.models import (Doctor,
                           Student,)
 from users.models import User
 import secrets
+from rest_framework.permissions import BasePermission
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 from staff.api.serializers import (DoctorSerializer,
@@ -24,17 +24,13 @@ from staff.api.serializers import (DoctorSerializer,
                                    StudentSerializer,
                                    DepartmentSerializer,)
 
-# class CreateDoctor(APIView):
-#     permission_classes = [IsAuthenticated] 
-#     permission_classes = [IsAdminUser]
-#     @swagger_auto_schema(request_body=DoctorSerializer, tags=['create doctor,nurse,student,'])
-#     def post(self, request):
-#         serializer = DoctorSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class IsAdminOrDoctor(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated and
+            (request.user.role == 'Admin' or request.user.role == 'Doctor')
+        )
 class CreateDoctor(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
@@ -145,7 +141,7 @@ class CreateDepartment(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
     
 class DoctorList(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
+    permission_classes = [IsAdminOrDoctor]
     @swagger_auto_schema(tags=['doctor'])
     def get(self, request):
         try:
