@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
 from users.permissions import (IsDoctor,IsNurse,IsStudent,
+                               IsAdminOrDoctor,
                                IsAdminOrDoctorOrNurse,
                                IsAdminOrDoctorOrNurseOrStudent,
                                IsAdminOrDoctorOrStudent)
@@ -25,14 +26,14 @@ from staff.api.serializers import (DoctorSerializer,
                                    DepartmentSerializer,)
 
 
-class IsAdminOrDoctor(BasePermission):
-    def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and (
-                request.user.is_staff or       # Django admin
-                getattr(request.user, 'role', None) == 'Doctor'  # Custom role
-            )
-        )
+# class IsAdminOrDoctor(BasePermission):
+#     def has_permission(self, request, view):
+#         return (
+#             request.user.is_authenticated and (
+#                 request.user.is_staff or       # Django admin
+#                 getattr(request.user, 'role', None) == 'Doctor'  # Custom role
+#             )
+#         )
 class CreateDoctor(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
