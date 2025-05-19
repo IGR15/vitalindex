@@ -3,12 +3,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
 from users.permissions import IsDoctor,IsNurse,IsStudent
 from rest_framework import status
+from django.conf import settings
+from django.core.mail import send_mail
+import string
 from rest_framework.response import Response
 from staff.models import (Doctor,
                           Nurse,
                           Department,
                           Student,)
 from users.models import User
+import secrets
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 from staff.api.serializers import (DoctorSerializer,
@@ -16,25 +20,76 @@ from staff.api.serializers import (DoctorSerializer,
                                    StudentSerializer,
                                    DepartmentSerializer,)
 
+# class CreateDoctor(APIView):
+#     permission_classes = [IsAuthenticated] 
+#     permission_classes = [IsAdminUser]
+#     @swagger_auto_schema(request_body=DoctorSerializer, tags=['create doctor,nurse,student,'])
+#     def post(self, request):
+#         serializer = DoctorSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class CreateDoctor(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser]
-    @swagger_auto_schema(request_body=DoctorSerializer, tags=['create doctor,nurse,student,'])
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    @swagger_auto_schema(
+        request_body=DoctorSerializer,
+        tags=['create doctor']
+    )
     def post(self, request):
-        serializer = DoctorSerializer(data=request.data)
+        data = request.data.copy()
+
+        # Set password
+        password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+        data['user']["role"] = "Doctor"
+        data['user']["password"] = password  # Inject password into serializer
+
+        serializer = DoctorSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            doctor = serializer.save()
+            doctor.user.set_password(password)
+            doctor.user.save()
+
+            send_mail(
+                subject="Your VitalIndex Login Credentials",
+                message=f"Username: {doctor.user.username}\nPassword: {password}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[doctor.user.email],
+                fail_silently=False,
+            )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CreateNurse(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
     @swagger_auto_schema(request_body=NurseSerializer, tags=['create doctor,nurse,student,'])
     def post(self, request):
-        serializer = NurseSerializer(data=request.data)
+        data = request.data.copy()
+
+        # Set password
+        password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+        data['user']["role"] = "Nurse"
+        data['user']["password"] = password  # Inject password into serializer
+
+        serializer = NurseSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            nurse = serializer.save()
+            nurse.user.set_password(password)
+            nurse.user.save()
+
+            send_mail(
+                subject="Your VitalIndex Login Credentials",
+                message=f"Username: {nurse.user.username}\nPassword: {password}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[nurse.user.email],
+                fail_silently=False,
+            )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -43,9 +98,27 @@ class CreateStudent(APIView):
     permission_classes = [IsAdminUser]
     @swagger_auto_schema(request_body=StudentSerializer,tags=['create doctor,nurse,student,'])
     def post(self, request):
-        serializer = StudentSerializer(data=request.data)
+        data = request.data.copy()
+
+        # Set password
+        password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+        data['user']["role"] = "Student"
+        data['user']["password"] = password  # Inject password into serializer
+
+        serializer = StudentSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            nurse = serializer.save()
+            nurse.user.set_password(password)
+            nurse.user.save()
+
+            send_mail(
+                subject="Your VitalIndex Login Credentials",
+                message=f"Username: {nurse.user.username}\nPassword: {password}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[nurse.user.email],
+                fail_silently=False,
+            )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
