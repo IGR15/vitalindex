@@ -1,7 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
-from users.permissions import IsDoctor,IsNurse,IsStudent
+from users.permissions import (IsDoctor,IsNurse,IsStudent,
+                               IsAdminOrDoctor,
+                               IsAdminOrDoctorOrNurse,
+                               IsAdminOrDoctorOrNurseOrStudent,
+                               IsAdminOrDoctorOrStudent)
 from rest_framework import status
 from django.conf import settings
 from django.core.mail import send_mail
@@ -153,7 +157,7 @@ class DoctorList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DoctorDetail(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
     @swagger_auto_schema(tags=['doctor'])
     def get(self, request, pk):
         try:
@@ -185,7 +189,7 @@ class DoctorDetail(APIView):
             return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)
         
 class NurseList(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
     
     @swagger_auto_schema(tags=['nurse'])
     def get(self, request):
@@ -197,7 +201,7 @@ class NurseList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class NurseDetail(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
     @swagger_auto_schema(tags=['nurse'])
     def get(self, request, pk):
         try:
@@ -230,7 +234,7 @@ class NurseDetail(APIView):
         
         
 class StudentList(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
     @swagger_auto_schema(tags=['student'])
     def get(self, request):
         try:
@@ -241,7 +245,7 @@ class StudentList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class StudentDetail(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
     @swagger_auto_schema(tags=['student'])
     def get(self, request, pk):
         try:
@@ -273,7 +277,7 @@ class StudentDetail(APIView):
             return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
         
 class DepartmentList(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
     @swagger_auto_schema(tags=['department'])
     def get(self, request):
         try:
@@ -284,8 +288,7 @@ class DepartmentList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)   
     
 class DepartmentDetail(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser, IsDoctor]
+    permission_classes = [IsAuthenticated,IsAdminOrDoctor]
     @swagger_auto_schema(tags=['department'])
     def get(self, request, pk):
         try:
