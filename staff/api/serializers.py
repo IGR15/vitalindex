@@ -4,6 +4,7 @@ from staff.models import (Department,
                           Nurse,
                           Student)
 from users.models import User
+from users.api.serializers import UserSerializer
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -12,46 +13,41 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class DoctorSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(source='user.id', read_only=True)  # Get the related User ID
-    username = serializers.CharField(source='user.username', required=True)
-    email = serializers.EmailField(source='user.email', required=True)
-    phone = serializers.CharField(source='user.phone', required=False, allow_null=True)
-    address = serializers.CharField(source='user.address', required=False, allow_null=True)
-    
+    user = UserSerializer(required=True)
+
     class Meta:
         model = Doctor
         fields = [
-            'doctor_id', 'user_id', 'username', 'email', 'phone', 'address',
-            'specialization', 'license_number', 'joining_date', 'department'
+            'doctor_id',
+            'user',
+            'specialization',
+            'license_number',
+            'joining_date',
+            'department'
         ]
 
     def create(self, validated_data):
-        """
-        Override create method to ensure User instance is created first.
-        """
         user_data = validated_data.pop('user')
+        user_data['role'] = 'Doctor' 
         user = User.objects.create(**user_data)
         doctor = Doctor.objects.create(user=user, **validated_data)
         return doctor
 
     def update(self, instance, validated_data):
-        """
-        Override update method to update both User and Doctor models.
-        """
         user_data = validated_data.pop('user', {})
         user = instance.user
 
         for attr, value in user_data.items():
-            setattr(user, attr, value)
+            # Prevent changing role externally
+            if attr != 'role':
+                setattr(user, attr, value)
         user.save()
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
         return instance
     
-
 class NurseSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', required=True)
