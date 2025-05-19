@@ -19,7 +19,7 @@ from staff.api.serializers import (DoctorSerializer,
 class CreateDoctor(APIView):
     permission_classes = [IsAuthenticated] 
     permission_classes = [IsAdminUser]
-    @swagger_auto_schema(serializer=DoctorSerializer, tags=['create doctor,nurse,student,'])
+    @swagger_auto_schema(request_body=DoctorSerializer, tags=['create doctor,nurse,student,'])
     def post(self, request):
         serializer = DoctorSerializer(data=request.data)
         if serializer.is_valid():
@@ -30,7 +30,7 @@ class CreateDoctor(APIView):
 class CreateNurse(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
-    @swagger_auto_schema(serializer=NurseSerializer, tags=['create doctor,nurse,student,'])
+    @swagger_auto_schema(request_body=NurseSerializer, tags=['create doctor,nurse,student,'])
     def post(self, request):
         serializer = NurseSerializer(data=request.data)
         if serializer.is_valid():
@@ -41,7 +41,7 @@ class CreateNurse(APIView):
 class CreateStudent(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
-    @swagger_auto_schema(serializer=StudentSerializer,tags=['create doctor,nurse,student,'])
+    @swagger_auto_schema(request_body=StudentSerializer,tags=['create doctor,nurse,student,'])
     def post(self, request):
         serializer = StudentSerializer(data=request.data)
         if serializer.is_valid():
@@ -52,7 +52,7 @@ class CreateStudent(APIView):
 class CreateDepartment(APIView):
     permission_classes = [IsAuthenticated]
     permission_classes = [IsAdminUser]
-    @swagger_auto_schema(serializer=DepartmentSerializer,tags=['create doctor,nurse,student,'])
+    @swagger_auto_schema(request_body=DepartmentSerializer,tags=['create doctor,nurse,student,'])
     def post(self, request):
         serializer = DepartmentSerializer(data=request.data)
         if serializer.is_valid():
@@ -85,7 +85,7 @@ class DoctorDetail(APIView):
         except Doctor.DoesNotExist:
             return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)    
         
-    @swagger_auto_schema(serializer=DoctorSerializer,tags=['doctor'])
+    @swagger_auto_schema(request_body=DoctorSerializer,tags=['doctor'])
     def put(self,request, pk):
         try:
             doctor = Doctor.objects.get(pk=pk)
@@ -131,7 +131,7 @@ class NurseDetail(APIView):
         except Nurse.DoesNotExist:
             return Response({"error": "Nurse not found"}, status=status.HTTP_404_NOT_FOUND)
         
-    @swagger_auto_schema(serializer=NurseSerializer,tags=['nurse'])
+    @swagger_auto_schema(request_body=NurseSerializer,tags=['nurse'])
     def put(self,request,pk):
         try:
             nurse = Nurse.objects.get(pk=pk)
@@ -177,7 +177,7 @@ class StudentDetail(APIView):
         except Student.DoesNotExist:
             return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
         
-    @swagger_auto_schema(serializer=StudentSerializer,tags=['student'])
+    @swagger_auto_schema(request_body=StudentSerializer,tags=['student'])
     def put(self,request,pk):
         try:
             student = Student.objects.get(pk=pk)
@@ -222,7 +222,7 @@ class DepartmentDetail(APIView):
         except Department.DoesNotExist:
             return Response({"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    @swagger_auto_schema(serializer=DepartmentSerializer,tags=['department'])
+    @swagger_auto_schema(request_body=DepartmentSerializer,tags=['department'])
     def put(self,request,pk):
         try:
             department = Department.objects.get(pk=pk)
