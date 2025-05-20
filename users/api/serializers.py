@@ -19,3 +19,6 @@ class UserSerializer(serializers.ModelSerializer):
             'username': {'required': True},
             'email': {'required': True},
         }
+        
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()

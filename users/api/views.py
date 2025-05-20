@@ -14,7 +14,7 @@ from users.models import User,Role
 from users.utiles import check_user_permission_level
 from django.shortcuts import get_object_or_404
 from users.api.serializers import (UserSerializer,
-                                   RoleSerializer)
+                                   RoleSerializer,LogoutSerializer)
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from drf_yasg.utils import swagger_auto_schema
@@ -37,16 +37,22 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    def post(self, request):
-        try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
 
-            return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-    
+    @swagger_auto_schema(
+        request_body=LogoutSerializer,
+        tags=["Users"]
+    )
+    def post(self, request):
+        serializer = LogoutSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                refresh_token = serializer.validated_data["refresh"]
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                return Response(status=status.HTTP_205_RESET_CONTENT)
+            except Exception:
+                return Response({"detail": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
