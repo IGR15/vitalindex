@@ -1,7 +1,7 @@
 from django.urls import path
 from users.api.views import (
     UserList, UserDetail, UserByRole, SingleUserByRole, UserCreate, RoleDetail,
-    CustomTokenObtainPairView  
+    CustomTokenObtainPairView  ,LogoutView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -9,6 +9,8 @@ urlpatterns = [
     # JWT Auth
     path('login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/users/logout/', LogoutView.as_view(), name='logout'),
+
 
     # User APIs
     path('users/', UserList.as_view(), name='user-list'), 

@@ -1,11 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
-from users.permissions import (IsDoctor,IsNurse,IsStudent,
-                               IsAdminOrDoctor,
-                               IsAdminOrDoctorOrNurse,
-                               IsAdminOrDoctorOrNurseOrStudent,
-                               IsAdminOrDoctorOrStudent)
+from users.permissions import (IsAdminOrDoctor,IsAdminOrDoctorOrNurse,)
 from rest_framework import status
 from django.conf import settings
 from django.core.mail import send_mail

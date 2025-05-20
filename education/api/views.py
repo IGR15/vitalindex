@@ -1,21 +1,19 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from users.permissions import IsDoctor,IsNurse,IsStudent
-from rest_framework.permissions import IsAdminUser
+from users.permissions import IsAdminOrDoctorOrNurseOrStudent
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from education.api.serializers import StudentSerializer
-from education.models import Student, CaseStudy
+from education.models import  CaseStudy
 from medical_records.models import MedicalRecord
 from medical_records.api.serializers import RedactedMedicalRecordSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['education']))
 class SaveCaseStudyView(APIView):
-    permission_classes = [IsAuthenticated, IsStudent]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurseOrStudent]
 
+    @swagger_auto_schema(request_body=RedactedMedicalRecordSerializer,tags=['education'])
     def post(self, request):
         try:
             record_id = request.data.get("medical_record_id")
@@ -43,7 +41,7 @@ class SaveCaseStudyView(APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(tags=['education']))
 @method_decorator(name='delete', decorator=swagger_auto_schema(tags=['education']))
 class MyCaseStudiesView(APIView):
-    permission_classes = [IsAuthenticated, IsStudent]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurseOrStudent]
 
     def get(self, request):
         try:

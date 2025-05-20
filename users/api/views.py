@@ -8,7 +8,8 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from users.permissions import IsDoctor,IsNurse,IsStudent
+from users.permissions import (IsAdminOrDoctorOrNurse)
+from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import User,Role
 from users.utiles import check_user_permission_level
 from django.shortcuts import get_object_or_404
@@ -33,6 +34,19 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+    
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+    
 
 
 
@@ -60,7 +74,7 @@ class UserDetail(APIView):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
         return Response(serializer.data)
-    @swagger_auto_schema(serializer=UserSerializer, tags=['Users'])
+    @swagger_auto_schema(request_body=UserSerializer, tags=['Users'])
     def put(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
@@ -82,14 +96,14 @@ class UserDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 class UserByRole(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
     @swagger_auto_schema(tags=['Users'])
     def get(self, request, role_id):
         users = User.objects.filter(role__id=role_id)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 class SingleUserByRole(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser, IsDoctor, IsNurse]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
     @swagger_auto_schema(tags=['Users'])
     def get(self, request, role_id, user_id):

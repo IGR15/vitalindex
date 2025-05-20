@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from patients.models import Patient
-from users.permissions import IsDoctor,IsNurse,IsStudent
+from users.permissions import (IsAdminOrDoctorOrNurse,IsAdminOrDoctor)
 from rest_framework.permissions import IsAdminUser
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
@@ -10,12 +10,11 @@ from patients.api.serializers import PatientSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
+from drf_yasg import openapi
 
-@method_decorator(name='post', decorator=swagger_auto_schema(tags=['patient']))
 class CreatePatient(APIView):
-    permission_classes = [IsAuthenticated] 
-    permission_classes = [IsAdminUser,IsDoctor]
-    @swagger_auto_schema(request_body=PatientSerializer)
+    permission_classes = [IsAuthenticated,IsAdminOrDoctor] 
+    @swagger_auto_schema(request_body=PatientSerializer,tags=['patient'])
     def post(self, request):
         serializer = PatientSerializer(data=request.data)
         if serializer.is_valid():
@@ -23,11 +22,9 @@ class CreatePatient(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['patient']))
 class PatientList(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser,IsDoctor,IsNurse]
+    permission_classes = [IsAuthenticated,IsAdminOrDoctorOrNurse]
+    @swagger_auto_schema(tags=['patient'])
     def get(self, request):
         try:
             patients = Patient.objects.all()
@@ -36,22 +33,18 @@ class PatientList(APIView):
         serializer = PatientSerializer(patients, many=True)
         return Response(serializer.data)
     
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['patient']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['patient']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['patient']))
 class PatientDetail(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser,IsDoctor,IsNurse]
+    permission_classes = [IsAuthenticated,IsAdminOrDoctorOrNurse]
+    @swagger_auto_schema(tags=['patient'])
     def get(self, request, pk):
         try:
             patient = get_object_or_404(Patient, pk=pk)
-            # patient = Patient.objects.get(pk=pk)
             serializer = PatientSerializer(patient)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Patient.DoesNotExist:
             return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        
+    @swagger_auto_schema(request_body=PatientSerializer,tags=['patient'])
     def put(self, request,pk):
         try:
             patient = get_object_or_404(Patient, pk=pk)
@@ -63,7 +56,7 @@ class PatientDetail(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    
+    @swagger_auto_schema(tags=['patient'])
     def delete(self, request, pk):
         try:
             patient = get_object_or_404(Patient, pk=pk)
@@ -72,12 +65,16 @@ class PatientDetail(APIView):
         except Patient.DoesNotExist:
             return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
         
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['patient']))
-@method_decorator(name='put', decorator=swagger_auto_schema(tags=['patient']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['patient']))
+
 class PatientDetailByName(APIView):
-    permission_classes = [IsAuthenticated]
-    permission_classes = [IsAdminUser,IsDoctor,IsNurse]
+    permission_classes = [IsAuthenticated,IsAdminOrDoctorOrNurse]
+    patient_param = openapi.Parameter(
+        'patient_name', openapi.IN_QUERY,
+        description="patient's name to filter patient",
+        type=openapi.TYPE_STRING,
+        required=True
+    )
+    @swagger_auto_schema(manual_parameters=[patient_param], tags=['patient'])
     def get(self, request, pk=None):
         patient_name = request.query_params.get('patient_name')
 
@@ -90,7 +87,7 @@ class PatientDetailByName(APIView):
 
         serializer = PatientSerializer(patient)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    @swagger_auto_schema(manual_parameters=[patient_param], tags=['patient'])
     def put(self, request, pk=None):
         patient_name = request.query_params.get('patient_name')
 
@@ -106,7 +103,7 @@ class PatientDetailByName(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    @swagger_auto_schema(manual_parameters=[patient_param], tags=['patient'])
     def delete(self, request, pk=None):
         patient_name = request.query_params.get('patient_name')
 

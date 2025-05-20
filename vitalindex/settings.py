@@ -31,6 +31,11 @@ ALLOWED_HOSTS = ['vitalindex.onrender.com']
 
 
 # Application definition
+SIMPLE_JWT = {
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ROTATE_REFRESH_TOKENS": True,
+}
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -51,6 +56,7 @@ INSTALLED_APPS = [
     'admin_panel',
     'staff',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
 
 ]
