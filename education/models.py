@@ -12,10 +12,19 @@ class Student(models.Model):
 
 
 class CaseStudy(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role__name': 'Student'})
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE)
     saved_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('student', 'medical_record') 
+        unique_together = ['medical_record']
+        
+class SavedCaseStudy(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'Student'})
+    case_study = models.ForeignKey(CaseStudy, on_delete=models.CASCADE)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'case_study')
+
+
         

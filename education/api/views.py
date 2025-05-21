@@ -1,76 +1,94 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from users.permissions import IsAdminOrDoctorOrNurseOrStudent
+from users.permissions import IsAdminOrDoctorOrNurseOrStudent,IsAdminOrDoctor
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from education.models import  CaseStudy
+from education.models import  CaseStudy,SavedCaseStudy
 from medical_records.models import MedicalRecord
 from medical_records.api.serializers import RedactedMedicalRecordSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+
 
 class SaveCaseStudyView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurseOrStudent]
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]  
 
-    @swagger_auto_schema(request_body=RedactedMedicalRecordSerializer,tags=['education'])
+    @swagger_auto_schema(request_body=RedactedMedicalRecordSerializer, tags=['education'])
     def post(self, request):
+        record_id = request.data.get("medical_record_id")
+        if not record_id:
+            return Response({"detail": "Missing medical_record_id"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            record_id = request.data.get("medical_record_id")
-            if not record_id:
-                return Response({"detail": "Missing medical_record_id"}, status=status.HTTP_400_BAD_REQUEST)
+            record = MedicalRecord.objects.get(pk=record_id)
+        except MedicalRecord.DoesNotExist:
+            return Response({"detail": "Medical record not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            try:
-                record = MedicalRecord.objects.get(pk=record_id)
-            except MedicalRecord.DoesNotExist:
-                return Response({"detail": "Medical record not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not record.is_public:
+            return Response({"detail": "Record must be marked public before saving as a case study."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not record.is_public:
-                return Response({"detail": "This medical record is not available for case study."}, status=status.HTTP_403_FORBIDDEN)
+        obj, created = CaseStudy.objects.get_or_create(medical_record=record)
 
-           
-            if CaseStudy.objects.filter(student=request.user, medical_record=record).exists():
-                return Response({"detail": "Already saved as case study."}, status=status.HTTP_409_CONFLICT)
+        if not created:
+            return Response({"detail": "Already available as case study."}, status=status.HTTP_409_CONFLICT)
 
-            CaseStudy.objects.create(student=request.user, medical_record=record)
-            return Response({"detail": "Case study saved successfully."}, status=status.HTTP_201_CREATED)
+        return Response({"detail": "Case study published successfully."}, status=status.HTTP_201_CREATED)
 
-        except Exception as e:
-            return Response({"detail": f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['education']))
-@method_decorator(name='delete', decorator=swagger_auto_schema(tags=['education']))
-class MyCaseStudiesView(APIView):
+class SaveStudentCaseStudyView(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurseOrStudent]
 
-    def get(self, request):
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'medical_record_id': openapi.Schema(type=openapi.TYPE_INTEGER)},
+        required=['medical_record_id']
+    ), tags=['education'])
+    def post(self, request):
+        record_id = request.data.get("medical_record_id")
+        if not record_id:
+            return Response({"detail": "Missing medical_record_id"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            case_studies = CaseStudy.objects.filter(student=request.user)
-            medical_records = [cs.medical_record for cs in case_studies]
+            record = MedicalRecord.objects.get(pk=record_id)
+        except MedicalRecord.DoesNotExist:
+            return Response({"detail": "Medical record not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            if not medical_records:
-                return Response({"detail": "No saved case studies."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            case_study = CaseStudy.objects.get(medical_record=record)
+        except CaseStudy.DoesNotExist:
+            return Response({"detail": "This record is not available as a case study."}, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = RedactedMedicalRecordSerializer(medical_records, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        # Save to student's bookmarks
+        saved_obj, created = SavedCaseStudy.objects.get_or_create(
+            student=request.user, case_study=case_study
+        )
 
-        except Exception as e:
-            return Response({"detail": f"Error retrieving case studies: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
+        if not created:
+            return Response({"detail": "Already saved."}, status=status.HTTP_409_CONFLICT)
+
+        return Response({"detail": "Case study bookmarked successfully."}, status=status.HTTP_201_CREATED)
+
         
-    def delete(self, request, record_id):
-        try:
-            try:
-                record = MedicalRecord.objects.get(pk=record_id)
-            except MedicalRecord.DoesNotExist:
-                return Response({"detail": "Medical record not found."}, status=status.HTTP_404_NOT_FOUND)
+class StudentCaseStudyView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurseOrStudent]
 
-            try:
-                case_study = CaseStudy.objects.get(student=request.user, medical_record=record)
-            except CaseStudy.DoesNotExist:
-                return Response({"detail": "Case study not found in your saved list."}, status=status.HTTP_404_NOT_FOUND)
+    @swagger_auto_schema(tags=["education"])
+    def get(self, request):
+        studies = CaseStudy.objects.select_related("medical_record").all()
+        serialized = RedactedMedicalRecordSerializer(
+            [study.medical_record for study in studies], many=True
+        )
+        return Response(serialized.data)
 
-            case_study.delete()
-            return Response({"detail": "Case study removed successfully."}, status=status.HTTP_204_NO_CONTENT)
 
-        except Exception as e:
-            return Response({"detail": f"Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)    
+class MyBookmarkedCaseStudiesView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurseOrStudent]
+
+    @swagger_auto_schema(tags=['education'])
+    def get(self, request):
+        saved_links = SavedCaseStudy.objects.filter(student=request.user).select_related('case_study__medical_record')
+        records = [link.case_study.medical_record for link in saved_links]
+
+        serializer = RedactedMedicalRecordSerializer(records, many=True)
+        return Response(serializer.data)

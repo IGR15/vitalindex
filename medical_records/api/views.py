@@ -7,6 +7,7 @@ from users.permissions import (IsAdminOrDoctor,IsAdminOrDoctorOrNurse,IsAdminOrD
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from medical_records.models import MedicalRecord,Vital
+from education.models import CaseStudy
 from medical_records.api.serializers import MedicalRecordSerializer,VitalsSerializer,RedactedMedicalRecordSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
@@ -111,6 +112,28 @@ class MedicalRecordDetail(APIView):
         medical_record.delete()
         return Response({"message": "Medical record deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     
+class UpdateMedicalRecordView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
+
+    @swagger_auto_schema(request_body=MedicalRecordSerializer, tags=['medical_records'])
+    def put(self, request, pk):
+        try:
+            record = MedicalRecord.objects.get(pk=pk)
+        except MedicalRecord.DoesNotExist:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MedicalRecordSerializer(record, data=request.data, partial=True)
+        if serializer.is_valid():
+            was_public = record.is_public
+            serializer.save()
+
+            # Auto-create CaseStudy if public is newly enabled
+            if not was_public and serializer.validated_data.get("is_public", False):
+                CaseStudy.objects.get_or_create(medical_record=record)
+
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
