@@ -21,15 +21,23 @@ from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-        @classmethod
-        def get_token(cls, user):
-            token = super().get_token(user)
-            token['username'] = user.username 
-            token['email'] = user.email
-            token['role'] = user.role
-             
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['role'] = user.role
+        token['username'] = user.username
+        token['email'] = user.email
+        return token
 
-            return token
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data.update({
+            'role': self.user.role,
+            'username': self.user.username,
+            'email': self.user.email
+        })
+        return data
+
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
