@@ -1,10 +1,12 @@
 from django.urls import path
 from education.api.views import (
-   SaveCaseStudyView,MyCaseStudiesView
+    SaveCaseStudyView,
+    SaveStudentCaseStudyView,
+    MyBookmarkedCaseStudiesView,
 )
 
 urlpatterns = [
-    path('case-studies/save/', SaveCaseStudyView.as_view(), name='save-case-study'),
-    path('case-studies/my/', MyCaseStudiesView.as_view(), name='my-case-studies'),
-    path('case-studies/my/<int:record_id>/', MyCaseStudiesView.as_view(), name='delete-case-study'),
+    path("publish/", SaveCaseStudyView.as_view(), name="publish_case_study"),
+    path("student/save/", SaveStudentCaseStudyView.as_view(), name="save_student_case_study"),
+    path("student/my/", MyBookmarkedCaseStudiesView.as_view(), name="my_bookmarked_case_studies"),
 ]
