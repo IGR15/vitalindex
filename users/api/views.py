@@ -40,7 +40,7 @@ class LogoutView(APIView):
 
     @swagger_auto_schema(
         request_body=LogoutSerializer,
-        tags=["Users"]
+        tags=["v1"]
     )
     def post(self, request):
         serializer = LogoutSerializer(data=request.data)
