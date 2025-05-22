@@ -10,7 +10,7 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.user.name} - {self.academic_course}"
 
-
+#GF
 class CaseStudy(models.Model):
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE)
     saved_at = models.DateTimeField(auto_now_add=True)
