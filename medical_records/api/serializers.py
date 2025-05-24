@@ -8,24 +8,22 @@ class VitalsSerializer(serializers.ModelSerializer):
         fields = ['id', 'temperature', 'heart_rate', 'blood_pressure', 'oxygen_saturation', 'timestamp']
 
 class MedicalRecordSerializer(serializers.ModelSerializer):
-    patiant=PatientSerializer(read_only=True)
-    vitals = VitalsSerializer(read_only=True) 
+    patient=PatientSerializer(read_only=True)
+    vitals = VitalsSerializer(many=True, required=False)
 
     class Meta:
         model = MedicalRecord
         fields = ['record_id', 'patiant', 'created_date', 'last_updated', 'diagnosis', 'treatment_plan', 'observations', 'vitals']
 
     def create(self, validated_data):
-        """
-        Create a medical record and optionally its vitals.
-        """
-        vitals_data = validated_data.pop('vitals', None)
+        vitals_data = validated_data.pop('vitals', [])
         medical_record = MedicalRecord.objects.create(**validated_data)
 
-        if vitals_data:
-            Vital.objects.create(record=medical_record, **vitals_data)
-        
+        for vital in vitals_data:
+            Vital.objects.create(record=medical_record, **vital)
+
         return medical_record
+
 
 class RedactedMedicalRecordSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
