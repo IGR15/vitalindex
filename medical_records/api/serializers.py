@@ -13,7 +13,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MedicalRecord
-        fields = ['record_id', 'patiant', 'created_date', 'last_updated', 'diagnosis', 'treatment_plan', 'observations', 'vitals']
+        fields = ['record_id', 'patient', 'created_date', 'last_updated', 'diagnosis', 'treatment_plan', 'observations', 'vitals']
 
     def create(self, validated_data):
         vitals_data = validated_data.pop('vitals', [])
