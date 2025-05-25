@@ -25,15 +25,15 @@ def get_logged_in_users():
 
 @method_decorator(name='get', decorator=swagger_auto_schema(tags=['admin_panel']))
 class SystemStatsView(APIView):
-    permission_classes = [IsAuthenticated]  # Only authenticated users allowed
-    permission_classes = [IsAdminUser]  # Only admin/staff users allowed
+    permission_classes = [IsAuthenticated]  
+    permission_classes = [IsAdminUser]  
 
     def get(self, request):
         user_count = User.objects.filter(is_active=True).count()
         patient_count = Patient.objects.count()
         logged_in_users = get_logged_in_users()
 
-        # Server info
+        
         cpu_usage = psutil.cpu_percent(interval=1)
         ram_usage = psutil.virtual_memory().percent
         uptime_seconds = int(now().timestamp() - psutil.boot_time())
