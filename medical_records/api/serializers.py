@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from medical_records.models import MedicalRecord,Vital
 from patients.api.serializers import PatientSerializer
+from patients.models import Patient
 
 class VitalsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,21 +9,27 @@ class VitalsSerializer(serializers.ModelSerializer):
         fields = ['id', 'temperature', 'heart_rate', 'blood_pressure', 'oxygen_saturation', 'timestamp']
 
 class MedicalRecordSerializer(serializers.ModelSerializer):
-    patient=PatientSerializer(read_only=True)
+    patient_id = serializers.PrimaryKeyRelatedField(
+        queryset=Patient.objects.all(), source='patient', write_only=True
+    )
+    patient = PatientSerializer(read_only=True)
     vitals = VitalsSerializer(many=True, required=False)
 
     class Meta:
         model = MedicalRecord
-        fields = ['record_id', 'patient', 'created_date', 'last_updated', 'diagnosis', 'treatment_plan', 'observations', 'vitals']
+        fields = [
+            'record_id', 'patient_id', 'patient', 'created_date',
+            'last_updated', 'diagnosis', 'treatment_plan',
+            'observations', 'vitals'
+        ]
 
     def create(self, validated_data):
         vitals_data = validated_data.pop('vitals', [])
         medical_record = MedicalRecord.objects.create(**validated_data)
-
         for vital in vitals_data:
             Vital.objects.create(record=medical_record, **vital)
-
         return medical_record
+
 
 
 class RedactedMedicalRecordSerializer(serializers.ModelSerializer):

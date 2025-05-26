@@ -52,14 +52,16 @@ class EducationalRecordsView(APIView):
        
 
 class CreateMedicalRecord(APIView):
-    permission_classes = [IsAuthenticated,IsAdminOrDoctorOrNurse]
-    @swagger_auto_schema(request_body=MedicalRecordSerializer,tags=['medical_records'])
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
+
+    @swagger_auto_schema(request_body=MedicalRecordSerializer, tags=['medical_records'])
     def post(self, request):
         serializer = MedicalRecordSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CreateVitals(APIView):
     permission_classes = [IsAuthenticated,IsAdminOrDoctorOrNurse]
