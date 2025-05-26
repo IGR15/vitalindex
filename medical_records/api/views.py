@@ -49,7 +49,55 @@ class EducationalRecordsView(APIView):
                 {"detail": f"Unexpected error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-       
+            
+class MedicalRecordByPatient(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
+
+    @swagger_auto_schema(tags=['medical_records'])
+    def get(self, request, patient_id):
+        try:
+            patient = get_object_or_404(Patient, id=patient_id)
+            medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not medical_records.exists():
+            return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MedicalRecordSerializer(medical_records, many=True)
+        return Response({
+            "patient": {
+                "id": patient.id,
+                "name": patient.name,
+                "dob": patient.dob,
+            },
+            "medical_records": serializer.data
+        })
+        
+        
+class medicalRecordByPatienName(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
+
+    @swagger_auto_schema(tags=['medical_records'])
+    def get(self, request, patient_name):
+        try:
+            patient = get_object_or_404(Patient, name=patient_name)
+            medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not medical_records.exists():
+            return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MedicalRecordSerializer(medical_records, many=True)
+        return Response({
+            "patient": {
+                "id": patient.id,
+                "name": patient.name,
+                "dob": patient.dob,
+            },
+            "medical_records": serializer.data
+        })
 
 class CreateMedicalRecord(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
@@ -61,6 +109,7 @@ class CreateMedicalRecord(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class CreateVitals(APIView):

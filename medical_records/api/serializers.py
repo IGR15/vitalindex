@@ -12,15 +12,16 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(
         queryset=Patient.objects.all(), source='patient', write_only=True
     )
-    patient = PatientSerializer(read_only=True)
+    patient = PatientSerializer(read_only=True)  # Optional for GET context
     vitals = VitalsSerializer(many=True, required=False)
 
     class Meta:
         model = MedicalRecord
         fields = [
-            'record_id', 'patient_id', 'patient', 'created_date',
-            'last_updated', 'diagnosis', 'treatment_plan',
-            'observations', 'vitals'
+            'record_id', 'patient_id', 'patient',  # 'patient' optional in response
+            'created_date', 'last_updated',
+            'diagnosis', 'treatment_plan', 'observations',
+            'vitals'
         ]
 
     def create(self, validated_data):
@@ -29,6 +30,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         for vital in vitals_data:
             Vital.objects.create(record=medical_record, **vital)
         return medical_record
+
 
 
 
