@@ -12,24 +12,26 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(
         queryset=Patient.objects.all(), source='patient', write_only=True
     )
-    patient = PatientSerializer(read_only=True)  # Optional for GET context
+    patient = PatientSerializer(read_only=True)
     vitals = VitalsSerializer(many=True, required=False)
 
     class Meta:
         model = MedicalRecord
         fields = [
-            'record_id', 'patient_id', 'patient',  # 'patient' optional in response
+            'record_id', 'patient_id', 'patient',  # Include patient only for GET
             'created_date', 'last_updated',
-            'diagnosis', 'treatment_plan', 'observations',
-            'vitals'
+            'diagnosis', 'treatment_plan',
+            'observations', 'vitals'
         ]
 
-    def create(self, validated_data):
-        vitals_data = validated_data.pop('vitals', [])
-        medical_record = MedicalRecord.objects.create(**validated_data)
-        for vital in vitals_data:
-            Vital.objects.create(record=medical_record, **vital)
-        return medical_record
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Hide 'patient' if this is a write operation (input)
+        request = self.context.get('request')
+        if request and request.method in ['POST', 'PUT', 'PATCH']:
+            self.fields.pop('patient')
+
 
 
 
