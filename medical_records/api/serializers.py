@@ -33,15 +33,15 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         source='patient',
         write_only=True
     )
-    patient = PatientBasicSerializer(read_only=True)
+    patient = PatientBasicSerializer(read_only=True)  # only in GET
     vitals = VitalsSerializer(many=True, required=False)
 
     class Meta:
         model = MedicalRecord
         fields = [
             'record_id',
-            'patient_id',
-            'patient',
+            'patient_id',     # only input
+            'patient',        # only output
             'created_date',
             'last_updated',
             'diagnosis',
@@ -50,6 +50,14 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
             'is_public',
             'vitals'
         ]
+
+    def create(self, validated_data):
+        vitals_data = validated_data.pop('vitals', [])
+        medical_record = MedicalRecord.objects.create(**validated_data)
+        for vital in vitals_data:
+            Vital.objects.create(medical_record=medical_record, **vital)
+        return medical_record
+
 
     def create(self, validated_data):
         vitals_data = validated_data.pop('vitals', [])
