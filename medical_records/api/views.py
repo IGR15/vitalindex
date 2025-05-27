@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from patients.models import Patient
 from users.permissions import (IsAdminOrDoctor,IsAdminOrDoctorOrNurse,IsAdminOrDoctorOrNurseOrStudent)
-from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from medical_records.models import MedicalRecord,Vital
 from education.models import CaseStudy
 from medical_records.api.serializers import MedicalRecordSerializer,VitalsCreateSerializer,VitalsInlineSerializer,RedactedMedicalRecordSerializer
 from drf_yasg.utils import swagger_auto_schema
-from django.utils.decorators import method_decorator
+from django.db.models import Q
+
 
 class SingleEducationalRecordView(APIView):
     permission_classes = [IsAuthenticated,IsAdminOrDoctorOrNurseOrStudent]
@@ -59,18 +59,19 @@ class MedicalRecordByPatient(APIView):
         medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
 
         if not medical_records.exists():
-            return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": f"No medical records found for patient {patient.first_name} {patient.last_name}"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = MedicalRecordSerializer(medical_records, many=True, context={'request': request})
         return Response({
             "patient": {
                 "id": patient.id,
-                "name": patient.name,
+                "first_name": patient.first_name,
+                "last_name": patient.last_name,
                 "dob": patient.date_of_birth,
             },
             "medical_records": serializer.data
         })
-        
+
 class GetAllMedicalRecords(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
@@ -91,30 +92,23 @@ class MedicalRecordByPatientName(APIView):
 
     @swagger_auto_schema(tags=['medical_records'])
     def get(self, request, patient_name):
-        patients = Patient.objects.filter(name=patient_name)
+        patients = Patient.objects.filter(
+            Q(first_name__icontains=patient_name) | Q(last_name__icontains=patient_name)
+        )
 
         if not patients.exists():
-            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "No patients found with the given name"}, status=status.HTTP_404_NOT_FOUND)
 
-        if patients.count() > 1:
-            return Response({"error": f"Multiple patients found with name '{patient_name}', please use patient ID instead."}, status=status.HTTP_409_CONFLICT)
+        all_records = MedicalRecord.objects.filter(patient__in=patients).select_related('patient')
 
-        patient = patients.first()
-        medical_records = MedicalRecord.objects.filter(patient=patient)
+        if not all_records.exists():
+            return Response({"error": f"No medical records found for patients matching '{patient_name}'"}, status=status.HTTP_404_NOT_FOUND)
 
-        if not medical_records.exists():
-            return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = MedicalRecordSerializer(medical_records, many=True, context={'request': request})
+        serializer = MedicalRecordSerializer(all_records, many=True, context={'request': request})
         return Response({
-            "patient": {
-                "id": patient.id,
-                "name": patient.name,
-                "dob": patient.date_of_birth,
-            },
+            "matches": patients.count(),
             "medical_records": serializer.data
         })
-
 
 class CreateMedicalRecord(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
