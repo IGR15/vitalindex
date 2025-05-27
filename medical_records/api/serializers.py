@@ -29,7 +29,10 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
 
         # Hide 'patient' if this is a write operation (input)
         request = self.context.get('request')
-        if request and request.method in ['POST', 'PUT', 'PATCH']:
+        # if request and request.method in ['POST', 'PUT', 'PATCH']:
+        #     self.fields.pop('patient')
+
+        if request.method in ['POST', 'PUT', 'PATCH']:
             self.fields.pop('patient')
 
 
