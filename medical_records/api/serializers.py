@@ -49,7 +49,6 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         source='patient',
         write_only=True
     )
-    patient = PatientBasicSerializer(read_only=True)
     vitals = VitalsInlineSerializer(many=True, required=False)
 
     class Meta:
@@ -57,7 +56,6 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         fields = [
             'record_id',
             'patient_id',
-            'patient',
             'created_date',
             'last_updated',
             'diagnosis',
@@ -73,6 +71,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         for vital in vitals_data:
             Vital.objects.create(medical_record=medical_record, **vital)
         return medical_record
+
 
 class RedactedMedicalRecordSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
