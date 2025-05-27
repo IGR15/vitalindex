@@ -6,7 +6,9 @@ from medical_records.api.views import (
     VitalsDetail, 
     MedicalRecordsByPatientAPIView,
     EducationalRecordsView, 
-    SingleEducationalRecordView
+    SingleEducationalRecordView,
+    MedicalRecordByPatient,
+    MedicalRecordByPatientName,
 )
 
 urlpatterns = [
@@ -17,4 +19,6 @@ urlpatterns = [
     path('vitals/<int:pk>/', VitalsDetail.as_view(), name='vitals-detail'), 
     path('educational/', EducationalRecordsView.as_view(), name='educational-records'),
     path('educational/<int:pk>/', SingleEducationalRecordView.as_view(), name='educational-record-detail'),
+    path('medical-records/patient/<int:patient_id>/', MedicalRecordByPatient.as_view(), name='medical-records-by-patient-id'),
+    path('medical-records/patient-name/<str:patient_name>/', MedicalRecordByPatientName.as_view(), name='medical-records-by-patient-name'),
 ]

@@ -55,16 +55,13 @@ class MedicalRecordByPatient(APIView):
 
     @swagger_auto_schema(tags=['medical_records'])
     def get(self, request, patient_id):
-        try:
-            patient = get_object_or_404(Patient, id=patient_id)
-            medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
-        except Patient.DoesNotExist:
-            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+        patient = get_object_or_404(Patient, id=patient_id)
+        medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
 
         if not medical_records.exists():
             return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = MedicalRecordSerializer(medical_records, many=True)
+        serializer = MedicalRecordSerializer(medical_records, many=True, context={'request': request})
         return Response({
             "patient": {
                 "id": patient.id,
@@ -73,23 +70,20 @@ class MedicalRecordByPatient(APIView):
             },
             "medical_records": serializer.data
         })
-        
-        
-class medicalRecordByPatienName(APIView):
+
+
+class MedicalRecordByPatientName(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
     @swagger_auto_schema(tags=['medical_records'])
     def get(self, request, patient_name):
-        try:
-            patient = get_object_or_404(Patient, name=patient_name)
-            medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
-        except Patient.DoesNotExist:
-            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+        patient = get_object_or_404(Patient, name=patient_name)
+        medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
 
         if not medical_records.exists():
             return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = MedicalRecordSerializer(medical_records, many=True)
+        serializer = MedicalRecordSerializer(medical_records, many=True, context={'request': request})
         return Response({
             "patient": {
                 "id": patient.id,
