@@ -15,7 +15,9 @@ class PatientBasicSerializer(serializers.ModelSerializer):
 
 class MedicalRecordSerializer(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(
-        queryset=Patient.objects.all(), source='patient', write_only=True
+        queryset=Patient.objects.all(),
+        source='patient',
+        write_only=True
     )
     patient = PatientBasicSerializer(read_only=True)
     vitals = VitalsSerializer(many=True, required=False)
@@ -28,6 +30,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
             'diagnosis', 'treatment_plan',
             'observations', 'vitals'
         ]
+
 
 
 

@@ -104,16 +104,19 @@ class CreateMedicalRecord(APIView):
 
     @swagger_auto_schema(request_body=MedicalRecordSerializer, tags=['medical_records'])
     def post(self, request):
-        patient_id = request.data.get('patient_id')
+        
+        data = request.data.copy()
+        data.pop('patient', None) 
+
+        patient_id = data.get('patient_id')
         if not patient_id:
             return Response({"detail": "patient_id is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            Patient.objects.get(pk=patient_id)
-        except Patient.DoesNotExist:
+        # Validate patient existence
+        if not Patient.objects.filter(pk=patient_id).exists():
             return Response({"detail": "Patient does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = MedicalRecordSerializer(data=request.data, context={'request': request})
+        serializer = MedicalRecordSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
