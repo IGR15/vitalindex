@@ -66,7 +66,7 @@ class MedicalRecordByPatient(APIView):
             "patient": {
                 "id": patient.id,
                 "name": patient.name,
-                "dob": patient.dob,
+                "dob": patient.date_of_birth,
             },
             "medical_records": serializer.data
         })
@@ -77,8 +77,16 @@ class MedicalRecordByPatientName(APIView):
 
     @swagger_auto_schema(tags=['medical_records'])
     def get(self, request, patient_name):
-        patient = get_object_or_404(Patient, name=patient_name)
-        medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
+        patients = Patient.objects.filter(name=patient_name)
+
+        if not patients.exists():
+            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if patients.count() > 1:
+            return Response({"error": f"Multiple patients found with name '{patient_name}', please use patient ID instead."}, status=status.HTTP_409_CONFLICT)
+
+        patient = patients.first()
+        medical_records = MedicalRecord.objects.filter(patient=patient)
 
         if not medical_records.exists():
             return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
@@ -88,10 +96,11 @@ class MedicalRecordByPatientName(APIView):
             "patient": {
                 "id": patient.id,
                 "name": patient.name,
-                "dob": patient.dob,
+                "dob": patient.date_of_birth,
             },
             "medical_records": serializer.data
         })
+
 
 class CreateMedicalRecord(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
@@ -143,7 +152,7 @@ class MedicalRecordDetail(APIView):
     @swagger_auto_schema(tags=['medical_records'])
     def get(self, request, record_id):
         try: 
-            medical_record = get_object_or_404(MedicalRecord, id=record_id)
+           medical_record = get_object_or_404(MedicalRecord, record_id=record_id)
         except MedicalRecord.DoesNotExist:
             return Response({"error": "Medical record not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = MedicalRecordSerializer(medical_record)
@@ -242,7 +251,7 @@ class MedicalRecordsByPatientAPIView(APIView):
             "patient": {
                 "id": patient.id,
                 "name": patient.name,
-                "dob": patient.dob,
+                "dob": patient.date_of_birth,
                 "gender": patient.gender,
                 "phone": patient.phone,
                 "email": patient.email,
