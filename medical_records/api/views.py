@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from medical_records.models import MedicalRecord,Vital
 from education.models import CaseStudy
-from medical_records.api.serializers import MedicalRecordSerializer,VitalsSerializer,RedactedMedicalRecordSerializer
+from medical_records.api.serializers import MedicalRecordSerializer,VitalsCreateSerializer,VitalsInlineSerializer,RedactedMedicalRecordSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 
@@ -126,7 +126,7 @@ class CreateMedicalRecord(APIView):
 
 class CreateVitals(APIView):
     permission_classes = [IsAuthenticated,IsAdminOrDoctorOrNurse]
-    @swagger_auto_schema(request_body=VitalsSerializer,tags=['vitals'])
+    @swagger_auto_schema(request_body=VitalsCreateSerializer,tags=['vitals'])
     def post(self, request):
         medical_record_id = request.data.get("medical_record_id") 
 
@@ -136,7 +136,7 @@ class CreateVitals(APIView):
         medical_record = get_object_or_404(MedicalRecord, id=medical_record_id) 
         
         request.data["record"] = medical_record.id  
-        serializer = VitalsSerializer(data=request.data)
+        serializer = VitalsCreateSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -208,15 +208,15 @@ class VitalsDetail(APIView):
             vitals = get_object_or_404(Vital, pk=pk)
         except Vital.DoesNotExist:
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = VitalsSerializer(vitals)
+        serializer = VitalsCreateSerializer(vitals)
         return Response(serializer.data, status=status.HTTP_200_OK)  
-    @swagger_auto_schema(request_body=VitalsSerializer,tags=['vitals'])
+    @swagger_auto_schema(request_body=VitalsCreateSerializer,tags=['vitals'])
     def put(self, request, pk):
         try:
             vitals = get_object_or_404(Vital, pk=pk)
         except Vital.DoesNotExist:
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = VitalsSerializer(vitals, data=request.data, partial=True)
+        serializer = VitalsCreateSerializer(vitals, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

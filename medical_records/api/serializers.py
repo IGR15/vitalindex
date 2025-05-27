@@ -3,10 +3,24 @@ from medical_records.models import MedicalRecord,Vital
 from patients.api.serializers import PatientSerializer
 from patients.models import Patient
 
-class VitalsSerializer(serializers.ModelSerializer):
+class VitalsInlineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vital
+        fields = [
+            'id',
+            'temperature',
+            'heart_rate',
+            'blood_pressure',
+            'oxygen_saturation',
+            'timestamp'
+        ]
+        read_only_fields = ['id', 'timestamp']
+
+        
+class VitalsCreateSerializer(serializers.ModelSerializer):
     medical_record_id = serializers.PrimaryKeyRelatedField(
-        source='medical_record',
         queryset=MedicalRecord.objects.all(),
+        source='medical_record',
         write_only=True
     )
 
@@ -21,6 +35,8 @@ class VitalsSerializer(serializers.ModelSerializer):
             'oxygen_saturation',
             'timestamp'
         ]
+        read_only_fields = ['id', 'timestamp']
+
 
 class PatientBasicSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,15 +49,15 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         source='patient',
         write_only=True
     )
-    patient = PatientBasicSerializer(read_only=True)  # only in GET
-    vitals = VitalsSerializer(many=True, required=False)
+    patient = PatientBasicSerializer(read_only=True)
+    vitals = VitalsInlineSerializer(many=True, required=False)
 
     class Meta:
         model = MedicalRecord
         fields = [
             'record_id',
-            'patient_id',     # only input
-            'patient',        # only output
+            'patient_id',
+            'patient',
             'created_date',
             'last_updated',
             'diagnosis',
@@ -58,24 +74,9 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
             Vital.objects.create(medical_record=medical_record, **vital)
         return medical_record
 
-
-    def create(self, validated_data):
-        vitals_data = validated_data.pop('vitals', [])
-        medical_record = MedicalRecord.objects.create(**validated_data)
-        for vital in vitals_data:
-            Vital.objects.create(medical_record=medical_record, **vital)
-        return medical_record
-
-
-
-
-
-
-
-
 class RedactedMedicalRecordSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
-    vitals = VitalsSerializer(many=True, read_only=True)  
+    vitals = MedicalRecordSerializer(many=True, read_only=True)  
 
     class Meta:
         model = MedicalRecord
