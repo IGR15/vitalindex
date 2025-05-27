@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from patients.api.serializers import PatientSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
+from django.db.models import Q
+
 
 class CreatePatient(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctor] 
@@ -73,7 +75,13 @@ class PatientDetailByName(APIView):
             serializer = PatientSerializer(patient)
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif patient_name:
-            patients = Patient.objects.filter(name__icontains=patient_name)
+            patients = Patient.objects.filter(
+             Q(first_name__icontains=patient_name) | Q(last_name__icontains=patient_name) |
+             Q(first_name__icontains=patient_name.split()[0]) &
+             Q(last_name__icontains=' '.join(patient_name.split()[1:]))
+             #gpt
+           )
+
             if not patients.exists():
                 return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
             serializer = PatientSerializer(patients, many=True)
