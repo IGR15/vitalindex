@@ -4,7 +4,7 @@ from medical_records.api.views import (
     CreateVitals,
     MedicalRecordDetail,
     VitalsDetail, 
-    MedicalRecordsByPatientAPIView,
+    GetAllMedicalRecords,
     EducationalRecordsView, 
     SingleEducationalRecordView,
     MedicalRecordByPatient,
@@ -12,7 +12,7 @@ from medical_records.api.views import (
 )
 
 urlpatterns = [
-    path('medical-records/', MedicalRecordsByPatientAPIView.as_view(), name='medical-records-by-patient'),  
+    path('medical-records/', GetAllMedicalRecords.as_view(), name='get-all-medical-records'),  
     path('medical-records/create/', CreateMedicalRecord.as_view(), name='create-medical-record'),  
     path('medical-records/<int:record_id>/', MedicalRecordDetail.as_view(), name='medical-record-detail'),  
     path('vitals/create/', CreateVitals.as_view(), name='create-vitals'),  

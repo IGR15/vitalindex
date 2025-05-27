@@ -70,6 +70,20 @@ class MedicalRecordByPatient(APIView):
             },
             "medical_records": serializer.data
         })
+        
+class GetAllMedicalRecords(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
+
+    @swagger_auto_schema(tags=['medical_records'])
+    def get(self, request):
+        medical_records = MedicalRecord.objects.all().select_related('patient')
+
+        if not medical_records.exists():
+            return Response({"error": "No medical records found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MedicalRecordSerializer(medical_records, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 
 class MedicalRecordByPatientName(APIView):
@@ -234,28 +248,3 @@ class VitalsDetail(APIView):
         return Response({"message": "Vitals deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 
-class MedicalRecordsByPatientAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
-    @swagger_auto_schema(tags=['medical_records'])
-    def get(self, request, patient_id):
-        try:
-            patient = get_object_or_404(Patient, id=patient_id)
-            medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
-        except Patient.DoesNotExist:
-            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
-        if not medical_records.exists():
-            return Response({"error": f"No medical records found for patient {patient.name}"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = MedicalRecordSerializer(medical_records, many=True)
-        return Response({
-            "patient": {
-                "id": patient.id,
-                "name": patient.name,
-                "dob": patient.date_of_birth,
-                "gender": patient.gender,
-                "phone": patient.phone,
-                "email": patient.email,
-                "medical_history": patient.medical_history
-            },
-            "medical_records": serializer.data
-        }, status=status.HTTP_200_OK)
