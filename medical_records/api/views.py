@@ -227,7 +227,7 @@ class VitalsDetail(APIView):
             vitals = get_object_or_404(Vital, pk=pk)
         except Vital.DoesNotExist:
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = VitalsCreateSerializer(vitals, data=request.data, partial=True)
+        serializer = VitalsInlineSerializer(vitals, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
