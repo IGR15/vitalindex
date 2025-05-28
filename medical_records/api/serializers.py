@@ -47,7 +47,8 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(
         queryset=Patient.objects.all(),
         source='patient',
-        write_only=True
+        write_only=True,
+        required=False
     )
     patient_name = serializers.SerializerMethodField(read_only=True)
     vitals = VitalsInlineSerializer(many=True, required=False)
@@ -72,15 +73,19 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         vitals_data = validated_data.pop('vitals', [])
+        patient = validated_data.get('patient')
+        if not patient:
+            raise serializers.ValidationError({"patient_id": "This field is required."})
+
         medical_record = MedicalRecord.objects.create(**validated_data)
         for vital in vitals_data:
             Vital.objects.create(medical_record=medical_record, **vital)
         return medical_record
-    
+
     def update(self, instance, validated_data):
         vitals_data = validated_data.pop('vitals', None)
+        validated_data.pop('patient', None)  
 
-        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
