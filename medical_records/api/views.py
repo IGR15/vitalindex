@@ -146,7 +146,7 @@ class CreateVitals(APIView):
 
         medical_record = get_object_or_404(MedicalRecord, record_id=medical_record_id) 
         
-        request.data["record"] = medical_record.id  
+        request.data["record"] = medical_record.record_id
         serializer = VitalsCreateSerializer(data=request.data)
 
         if serializer.is_valid():
