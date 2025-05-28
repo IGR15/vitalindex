@@ -58,9 +58,6 @@ class MedicalRecordByPatient(APIView):
         patient = get_object_or_404(Patient, id=patient_id)
         medical_records = MedicalRecord.objects.filter(patient=patient).select_related('patient')
 
-        if not medical_records.exists():
-            return Response({"error": f"No medical records found for patient {patient.first_name} {patient.last_name}"}, status=status.HTTP_404_NOT_FOUND)
-
         serializer = MedicalRecordSerializer(medical_records, many=True, context={'request': request})
         return Response({
             "patient": {
@@ -71,6 +68,7 @@ class MedicalRecordByPatient(APIView):
             },
             "medical_records": serializer.data
         })
+
 
 class GetAllMedicalRecords(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
@@ -221,7 +219,7 @@ class VitalsDetail(APIView):
             return Response({"error": "Vitals not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = VitalsCreateSerializer(vitals)
         return Response(serializer.data, status=status.HTTP_200_OK)  
-    @swagger_auto_schema(request_body=VitalsCreateSerializer,tags=['vitals'])
+    @swagger_auto_schema(request_body=VitalsInlineSerializer,tags=['vitals'])
     def put(self, request, pk):
         try:
             vitals = get_object_or_404(Vital, pk=pk)
