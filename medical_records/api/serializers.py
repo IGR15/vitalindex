@@ -48,7 +48,6 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         queryset=Patient.objects.all(),
         source='patient',
         write_only=True,
-        required=False
     )
     patient_name = serializers.SerializerMethodField(read_only=True)
     vitals = VitalsInlineSerializer(many=True, required=False)
@@ -82,9 +81,19 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
             Vital.objects.create(medical_record=medical_record, **vital)
         return medical_record
 
+    
+class MedicalRecordUpdateSerializer(serializers.ModelSerializer):
+    vitals = VitalsInlineSerializer(many=True, required=False)
+
+    class Meta:
+        model = MedicalRecord
+        fields = [
+            'record_id', 'diagnosis',
+            'treatment_plan', 'observations', 'is_public', 'vitals'
+        ]
+
     def update(self, instance, validated_data):
         vitals_data = validated_data.pop('vitals', None)
-        validated_data.pop('patient', None)  
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -96,6 +105,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
                 Vital.objects.create(medical_record=instance, **vital)
 
         return instance
+
 
 
 class RedactedMedicalRecordSerializer(serializers.ModelSerializer):

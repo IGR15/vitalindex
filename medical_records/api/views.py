@@ -3,11 +3,17 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from patients.models import Patient
-from users.permissions import (IsAdminOrDoctor,IsAdminOrDoctorOrNurse,IsAdminOrDoctorOrNurseOrStudent)
+from users.permissions import (IsAdminOrDoctor,
+                               IsAdminOrDoctorOrNurse,
+                               IsAdminOrDoctorOrNurseOrStudent)
 from rest_framework.permissions import IsAuthenticated
 from medical_records.models import MedicalRecord,Vital
 from education.models import CaseStudy
-from medical_records.api.serializers import MedicalRecordSerializer,VitalsCreateSerializer,VitalsInlineSerializer,RedactedMedicalRecordSerializer
+from medical_records.api.serializers import (MedicalRecordSerializer,
+                                             VitalsCreateSerializer,
+                                             VitalsInlineSerializer,
+                                             RedactedMedicalRecordSerializer,
+                                             MedicalRecordUpdateSerializer)
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
 
@@ -164,13 +170,13 @@ class MedicalRecordDetail(APIView):
         serializer = MedicalRecordSerializer(medical_record)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    @swagger_auto_schema(request_body=MedicalRecordSerializer,tags=['medical_records'])
+    @swagger_auto_schema(request_body=MedicalRecordUpdateSerializer,tags=['medical_records'])
     def put(self, request, record_id):
         try:
             medical_record = get_object_or_404(MedicalRecord, record_id=record_id)
         except MedicalRecord.DoesNotExist:
             return Response({"error": "Medical record not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = MedicalRecordSerializer(medical_record, data=request.data, partial=True)
+        serializer = MedicalRecordUpdateSerializer(medical_record, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
