@@ -1,3 +1,88 @@
 from django.test import TestCase
+from rest_framework.test import APIClient
+from django.urls import reverse
+from users.models import User
+from patients.models import Patient
+from staff.models import Doctor, Department
+from reports.models import Report
+from datetime import date
+from rest_framework_simplejwt.tokens import RefreshToken
 
-# Create your tests here.
+
+class ReportAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.department = Department.objects.create(name='Cardiology')
+
+        self.user = User.objects.create_user(
+            username='docuser', password='password', email='doc@example.com', role='Doctor'
+        )
+
+        self.doctor = Doctor.objects.create(
+            user=self.user,
+            specialization="Cardiology",
+            license_number="DOC123456",
+            joining_date=date(2022, 5, 10),
+            department=self.department
+        )
+
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.patient = Patient.objects.create(
+            first_name='Ali',
+            last_name='Zidan',
+            date_of_birth='1990-01-01',
+            gender='Male',
+            address='Hebron',
+            phone='1234567890',
+            email='ali@example.com'
+        )
+
+        self.report = Report.objects.create(
+            doctor=self.doctor,
+            patient=self.patient,
+            report_title="Initial Report",
+            report_type="case_study",
+            report_content="Initial content"
+        )
+
+    def test_create_report_success(self):
+        payload = {
+            "report_title": "Heart Case",
+            "report_type": "case_study",
+            "report_content": "Details...",
+            "doctor_id": self.doctor.doctor_id,
+            "patient_id": self.patient.id
+        }
+        response = self.client.post(reverse('create-report'), data=payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['report_title'], "Heart Case")
+
+    def test_update_report_success(self):
+        payload = {
+            "report_title": "Updated Report Title",
+            "report_content": "Updated content"
+        }
+        url = reverse('report-detail', args=[self.report.report_id])
+        response = self.client.put(url, data=payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['report_title'], "Updated Report Title")
+
+    def test_delete_report_success(self):
+        url = reverse('report-detail', args=[self.report.report_id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Report.objects.filter(report_id=self.report.report_id).exists())
+
+    def test_create_report_invalid_data(self):
+        payload = {
+            "report_title": "",  
+            "report_type": "invalid_type",  
+            "report_content": "Some content"
+        }
+        response = self.client.post(reverse('create-report'), data=payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('report_title', response.data)
+        self.assertIn('report_type', response.data)

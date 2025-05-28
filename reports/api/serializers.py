@@ -45,11 +45,12 @@ class ReportSerializer(serializers.ModelSerializer):
         read_only_fields = ['version', 'created_at', 'updated_at']
 
     def create(self, validated_data):
-        reviewed_by = validated_data.pop('reviewed_by', [])
+        reviewed_by = validated_data.pop('reviewed_by_ids', [])
         report = Report.objects.create(**validated_data)
         if reviewed_by:
             report.reviewed_by.set(reviewed_by)
         return report
+
 
     def update(self, instance, validated_data):
         reviewed_by = validated_data.pop('reviewed_by', None)
