@@ -2,25 +2,41 @@ from django.db import models
 from staff.models import Doctor
 from patients.models import Patient
 from medical_records.models import MedicalRecord
+from users.models import User 
 
 class Report(models.Model):
-    REPORT_STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
+    REPORT_TYPES = [
+        ('case_study', 'Case Study'),
+        ('clinical_review', 'Clinical Review'),
+        ('diagnostic_summary', 'Diagnostic Summary'),
+        ('treatment_outcome', 'Treatment Outcome'),
     ]
 
-    report_id = models.AutoField(primary_key=True) 
+    report_id = models.AutoField(primary_key=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="reports")
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="reports")
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.SET_NULL, null=True, blank=True, related_name="reports")
+
     report_title = models.CharField(max_length=255)
+    report_type = models.CharField(max_length=100, choices=REPORT_TYPES, default='case_study')
     report_content = models.TextField()
-    report_file = models.FileField(upload_to='reports/', null=True, blank=True) 
-    # status = models.CharField(max_length=20, choices=REPORT_STATUS_CHOICES, default='draft')  
-    doctor_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)  
-    created_at = models.DateTimeField(auto_now_add=True)  
-    updated_at = models.DateTimeField(auto_now=True)  
+    report_file = models.FileField(upload_to='reports/', null=True, blank=True)
+    doctor_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
+
+    reviewed_by = models.ManyToManyField(Doctor, related_name="reviewed_reports", blank=True)
+    comments = models.TextField(blank=True, help_text="Optional peer comments or feedback")
+
+    is_public = models.BooleanField(default=False, help_text="Mark if this report is shareable")
+    shared_with = models.ManyToManyField(User, blank=True, related_name="shared_reports")
+
+    keywords = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
+    related_studies = models.TextField(blank=True, help_text="Links or references to studies")
+
+    version = models.PositiveIntegerField(default=1)
+    modified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="modified_reports")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Report {self.report_id} - {self.report_title} (Dr. {self.doctor.user.username})"
+        return f"{self.report_title} for {self.patient.first_name} ({self.report_type})"
