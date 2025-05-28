@@ -144,7 +144,7 @@ class CreateVitals(APIView):
         if not medical_record_id:
             return Response({"error": "medical_record_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        medical_record = get_object_or_404(MedicalRecord, id=medical_record_id) 
+        medical_record = get_object_or_404(MedicalRecord, record_id=medical_record_id) 
         
         request.data["record"] = medical_record.id  
         serializer = VitalsCreateSerializer(data=request.data)
@@ -169,7 +169,7 @@ class MedicalRecordDetail(APIView):
     @swagger_auto_schema(request_body=MedicalRecordSerializer,tags=['medical_records'])
     def put(self, request, record_id):
         try:
-            medical_record = get_object_or_404(MedicalRecord, id=record_id)
+            medical_record = get_object_or_404(MedicalRecord, record_id=record_id)
         except MedicalRecord.DoesNotExist:
             return Response({"error": "Medical record not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = MedicalRecordSerializer(medical_record, data=request.data, partial=True)
@@ -180,7 +180,7 @@ class MedicalRecordDetail(APIView):
     @swagger_auto_schema(tags=['medical_records'])
     def delete(self, request, record_id):
         try:
-            medical_record = get_object_or_404(MedicalRecord, id=record_id)
+            medical_record = get_object_or_404(MedicalRecord, record_id=record_id)
         except MedicalRecord.DoesNotExist:
             return Response({"error": "Medical record not found"}, status=status.HTTP_404_NOT_FOUND)
         medical_record.delete()
@@ -192,7 +192,7 @@ class UpdateMedicalRecordView(APIView):
     @swagger_auto_schema(request_body=MedicalRecordSerializer, tags=['medical_records'])
     def put(self, request, pk):
         try:
-            record = MedicalRecord.objects.get(pk=pk)
+           record = get_object_or_404(MedicalRecord, record_id=pk)
         except MedicalRecord.DoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
