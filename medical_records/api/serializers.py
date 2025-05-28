@@ -76,6 +76,21 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         for vital in vitals_data:
             Vital.objects.create(medical_record=medical_record, **vital)
         return medical_record
+    
+    def update(self, instance, validated_data):
+        vitals_data = validated_data.pop('vitals', None)
+
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if vitals_data is not None:
+            instance.vitals.all().delete()
+            for vital in vitals_data:
+                Vital.objects.create(medical_record=instance, **vital)
+
+        return instance
 
 
 class RedactedMedicalRecordSerializer(serializers.ModelSerializer):
