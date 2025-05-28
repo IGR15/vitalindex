@@ -24,10 +24,8 @@ class Report(models.Model):
     doctor_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
 
     reviewed_by = models.ManyToManyField(Doctor, related_name="reviewed_reports", blank=True)
-    comments = models.TextField(blank=True, help_text="Optional peer comments or feedback")
 
     is_public = models.BooleanField(default=False, help_text="Mark if this report is shareable")
-    shared_with = models.ManyToManyField(User, blank=True, related_name="shared_reports")
 
     keywords = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
     related_studies = models.TextField(blank=True, help_text="Links or references to studies")
