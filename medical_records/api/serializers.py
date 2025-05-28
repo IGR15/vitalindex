@@ -49,6 +49,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         source='patient',
         write_only=True
     )
+    patient_name = serializers.SerializerMethodField(read_only=True)
     vitals = VitalsInlineSerializer(many=True, required=False)
 
     class Meta:
@@ -56,6 +57,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         fields = [
             'record_id',
             'patient_id',
+            'patient_name', 
             'created_date',
             'last_updated',
             'diagnosis',
@@ -64,6 +66,9 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
             'is_public',
             'vitals'
         ]
+
+    def get_patient_name(self, obj):
+        return f"{obj.patient.first_name} {obj.patient.last_name}"
 
     def create(self, validated_data):
         vitals_data = validated_data.pop('vitals', [])
