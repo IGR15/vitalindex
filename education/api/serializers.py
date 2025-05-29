@@ -1,14 +1,13 @@
 from rest_framework import serializers
-from education.models import Student, CaseStudy
+from medical_records.models import MedicalRecord
+from medical_records.api.serializers import VitalsInlineSerializer
 
-class StudentSerializer(serializers.ModelSerializer):
+class RedactedMedicalRecordSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    vitals = VitalsInlineSerializer(many=True, read_only=True)  
     class Meta:
-        model = Student
-        fields = '__all__'
-        
-        
-class CaseStudySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CaseStudy
-        fields = ['id', 'medical_record', 'saved_at']
-        
+        model = MedicalRecord
+        exclude = ['patient']
+
+    def get_name(self, obj):
+        return "John Doe"

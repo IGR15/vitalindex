@@ -1,14 +1,14 @@
 from django.urls import path
-from education.api.views import (
-    SaveCaseStudyView,
-    SaveStudentCaseStudyView,
-    MyBookmarkedCaseStudiesView,
-    StudentCaseStudyView
+from .views import (
+    PublishMedicalRecordView,
+    PublicMedicalRecordsView,
+    SaveStudentBookmarkView,
+    MyBookmarkedRecordsView
 )
 
 urlpatterns = [
-    path("publish/", SaveCaseStudyView.as_view(), name="publish_case_study"),
-    path("student/save/", SaveStudentCaseStudyView.as_view(), name="save_student_case_study"),
-    path("student/my/", MyBookmarkedCaseStudiesView.as_view(), name="my_bookmarked_case_studies"),
-    path("student/case-study", StudentCaseStudyView.as_view,name="case-studylist"),
+    path('education/publish/', PublishMedicalRecordView.as_view(), name='publish-medical-record'),
+    path('education/public-records/', PublicMedicalRecordsView.as_view(), name='public-medical-records'),
+    path('education/bookmark/', SaveStudentBookmarkView.as_view(), name='bookmark-medical-record'),
+    path('education/my-bookmarks/', MyBookmarkedRecordsView.as_view(), name='my-bookmarked-records'),
 ]
