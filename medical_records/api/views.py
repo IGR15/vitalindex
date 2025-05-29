@@ -8,11 +8,9 @@ from users.permissions import (IsAdminOrDoctor,
                                IsAdminOrDoctorOrNurseOrStudent)
 from rest_framework.permissions import IsAuthenticated
 from medical_records.models import MedicalRecord,Vital
-from education.models import CaseStudy
 from medical_records.api.serializers import (MedicalRecordSerializer,
                                              VitalsCreateSerializer,
                                              VitalsInlineSerializer,
-                                             RedactedMedicalRecordSerializer,
                                              MedicalRecordUpdateSerializer)
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import Q
