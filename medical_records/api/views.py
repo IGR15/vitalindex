@@ -150,9 +150,9 @@ class CreateVitals(APIView):
 
         medical_record = get_object_or_404(MedicalRecord, record_id=medical_record_id) 
         
-        request.data["record"] = medical_record.record_id
-        serializer = VitalsCreateSerializer(data=request.data)
-
+        data = request.data.copy()
+        data["record"] = medical_record.record_id
+        serializer = VitalsCreateSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

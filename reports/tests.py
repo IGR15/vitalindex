@@ -12,7 +12,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 class ReportAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-
         self.department = Department.objects.create(name='Cardiology')
 
         self.user = User.objects.create_user(
