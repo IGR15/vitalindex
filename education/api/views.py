@@ -9,6 +9,9 @@ from users.permissions import IsAdminOrDoctor, IsAdminOrDoctorOrNurseOrStudent
 from medical_records.models import MedicalRecord
 from education.models import SavedCaseStudy
 from education.api.serializers import RedactedMedicalRecordSerializer
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PublishMedicalRecordView(APIView):
@@ -23,19 +26,23 @@ class PublishMedicalRecordView(APIView):
         tags=['education']
     )
     def post(self, request):
-        record_id = request.data.get("medical_record_id")
-        if not record_id:
-            return Response({"detail": "Missing medical_record_id"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            record_id = request.data.get("medical_record_id")
+            if not record_id:
+                return Response({"detail": "Missing medical_record_id"}, status=status.HTTP_400_BAD_REQUEST)
 
-        record = get_object_or_404(MedicalRecord, pk=record_id)
+            record = get_object_or_404(MedicalRecord, pk=record_id)
 
-        if record.is_public:
-            return Response({"detail": "Already public."}, status=status.HTTP_409_CONFLICT)
+            if record.is_public:
+                return Response({"detail": "Already public."}, status=status.HTTP_409_CONFLICT)
 
-        record.is_public = True
-        record.save()
+            record.is_public = True
+            record.save()
 
-        return Response({"detail": "Medical record published as public."}, status=status.HTTP_200_OK)
+            return Response({"detail": "Medical record published as public."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Unexpected error during PublishMedicalRecordView POST: {str(e)}")
+            return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PublicMedicalRecordsView(APIView):
@@ -43,9 +50,13 @@ class PublicMedicalRecordsView(APIView):
 
     @swagger_auto_schema(tags=['education'])
     def get(self, request):
-        records = MedicalRecord.objects.filter(is_public=True)
-        serializer = RedactedMedicalRecordSerializer(records, many=True)
-        return Response(serializer.data)
+        try:
+            records = MedicalRecord.objects.filter(is_public=True)
+            serializer = RedactedMedicalRecordSerializer(records, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(f"Unexpected error during PublicMedicalRecordsView GET: {str(e)}")
+            return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SaveStudentBookmarkView(APIView):
@@ -60,13 +71,21 @@ class SaveStudentBookmarkView(APIView):
         tags=['education']
     )
     def post(self, request):
-        record_id = request.data.get("medical_record_id")
-        record = get_object_or_404(MedicalRecord, pk=record_id, is_public=True)
+        try:
+            record_id = request.data.get("medical_record_id")
+            if not record_id:
+                return Response({"detail": "Missing medical_record_id"}, status=status.HTTP_400_BAD_REQUEST)
 
-        obj, created = SavedCaseStudy.objects.get_or_create(student=request.user, medical_record=record)
-        if not created:
-            return Response({"detail": "Already saved."}, status=status.HTTP_409_CONFLICT)
-        return Response({"detail": "Bookmarked."}, status=status.HTTP_201_CREATED)
+            record = get_object_or_404(MedicalRecord, pk=record_id, is_public=True)
+
+            obj, created = SavedCaseStudy.objects.get_or_create(student=request.user, medical_record=record)
+            if not created:
+                return Response({"detail": "Already saved."}, status=status.HTTP_409_CONFLICT)
+
+            return Response({"detail": "Bookmarked."}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.exception(f"Unexpected error during SaveStudentBookmarkView POST: {str(e)}")
+            return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class MyBookmarkedRecordsView(APIView):
@@ -74,7 +93,11 @@ class MyBookmarkedRecordsView(APIView):
 
     @swagger_auto_schema(tags=['education'])
     def get(self, request):
-        bookmarks = SavedCaseStudy.objects.filter(student=request.user).select_related('medical_record')
-        records = [b.medical_record for b in bookmarks]
-        serializer = RedactedMedicalRecordSerializer(records, many=True)
-        return Response(serializer.data)
+        try:
+            bookmarks = SavedCaseStudy.objects.filter(student=request.user).select_related('medical_record')
+            records = [b.medical_record for b in bookmarks]
+            serializer = RedactedMedicalRecordSerializer(records, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(f"Unexpected error during MyBookmarkedRecordsView GET: {str(e)}")
+            return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
