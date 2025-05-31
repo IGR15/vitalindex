@@ -83,8 +83,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'EXCEPTION_HANDLER': 'patients.utiles.custom_exception_handler.custom_exception_handler',
-    'EXCEPTION_HANDLER': 'users.utiles.custom_exception_handler.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'patients.utils.custom_exception_handler.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'users.utils.custom_exception_handler.custom_exception_handler',
 }
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
