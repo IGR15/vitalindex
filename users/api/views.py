@@ -4,7 +4,6 @@ from django.core.mail import send_mail
 from rest_framework.views import APIView
 from django.conf import settings
 from rest_framework.permissions import IsAdminUser
-from rest_framework import generics
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -19,8 +18,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
+from rest_framework.exceptions import AuthenticationFailed
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -30,13 +31,21 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        data = super().validate(attrs)
-        data.update({
-            'role': self.user.role,
-            'username': self.user.username,
-            'email': self.user.email
-        })
-        return data
+        try:
+            data = super().validate(attrs)
+            data.update({
+                'role': self.user.role,
+                'username': self.user.username,
+                'email': self.user.email
+            })
+            return data
+        except AuthenticationFailed as e:
+            # Customize error response when credentials are wrong
+            raise AuthenticationFailed({
+                "error": "Passwords do not match",
+                "message": "The provided passwords do not match. Please ensure that both password fields are identical and meet the minimum requirements (e.g., at least 8 characters, including a number and a special character).",
+                "status": 400
+            })
 
 
 

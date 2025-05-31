@@ -10,8 +10,26 @@ from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from django.db.models import Q
 import logging
+from rest_framework.views import exception_handler
+from rest_framework.exceptions import NotAuthenticated, AuthenticationFailed
+from rest_framework.response import Response
+from django.http import Http404
+
+
 
 logger = logging.getLogger(__name__)
+
+def custom_exception_handler(exc, context):
+    response = exception_handler(exc, context)
+
+    if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
+        return Response({
+            "error": "Authentication required",
+            "message": "You must provide valid authentication credentials to access this endpoint. Please log in or include a valid token in the Authorization header.",
+            "status": 401
+        }, status=status.HTTP_401_UNAUTHORIZED)
+
+    return response
 
 
 class CreatePatient(APIView):
@@ -24,7 +42,14 @@ class CreatePatient(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+            if 'email' in serializer.errors:
+                return Response({
+                    "error": "Email already exists",
+                    "message": "The email address you provided is already associated with an existing patient account. Please use a different email address or contact support if you need assistance.",
+                    "status": 400
+                }, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             logger.exception(f"Unexpected error during patient creation: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -43,7 +68,6 @@ class PatientList(APIView):
             logger.exception(f"Unexpected error during patient list: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 class PatientDetail(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
@@ -53,6 +77,14 @@ class PatientDetail(APIView):
             patient = get_object_or_404(Patient, pk=pk)
             serializer = PatientSerializer(patient)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Http404:
+            return Response({
+                "error": "Patient not found",
+                "message": f"No patient was found with the provided ID ({pk}). Please verify the patient ID and try again, or ensure the patient exists in the system.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during patient GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -66,6 +98,14 @@ class PatientDetail(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Http404:
+            return Response({
+                "error": "Patient not found",
+                "message": f"No patient was found with the provided ID ({pk}). Please verify the patient ID and try again, or ensure the patient exists in the system.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during patient PUT: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -76,6 +116,14 @@ class PatientDetail(APIView):
             patient = get_object_or_404(Patient, pk=pk)
             patient.delete()
             return Response({"message": "Patient deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+        except Http404:
+            return Response({
+                "error": "Patient not found",
+                "message": f"No patient was found with the provided ID ({pk}). Please verify the patient ID and try again, or ensure the patient exists in the system.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during patient DELETE: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -105,15 +153,20 @@ class PatientDetailByName(APIView):
                 patients = Patient.objects.filter(
                     Q(first_name__icontains=patient_name) | Q(last_name__icontains=patient_name)
                 )
-
                 if not patients.exists():
-                    return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
-
+                    raise Http404
                 serializer = PatientSerializer(patients, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
             else:
                 return Response({"error": "Provide either patient_id (pk) or patient_name"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Http404:
+            return Response({
+                "error": "Patient not found",
+                "message": f"No patient was found with the provided ID ({pk}) or name filter. Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
             logger.exception(f"Unexpected error during patient detail by name/ID GET: {str(e)}")
@@ -128,7 +181,7 @@ class PatientDetailByName(APIView):
                 patient = get_object_or_404(Patient, pk=pk)
             elif patient_name:
                 patient = get_object_or_404(
-                    Patient, 
+                    Patient,
                     Q(first_name__icontains=patient_name) | Q(last_name__icontains=patient_name)
                 )
             else:
@@ -139,6 +192,13 @@ class PatientDetailByName(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Http404:
+            return Response({
+                "error": "Patient not found",
+                "message": f"No patient was found with the provided ID ({pk}) or name filter. Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
             logger.exception(f"Unexpected error during patient detail by name/ID PUT: {str(e)}")
@@ -161,6 +221,13 @@ class PatientDetailByName(APIView):
 
             patient.delete()
             return Response({"message": "Patient deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+        except Http404:
+            return Response({
+                "error": "Patient not found",
+                "message": f"No patient was found with the provided ID ({pk}) or name filter. Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
             logger.exception(f"Unexpected error during patient detail by name/ID DELETE: {str(e)}")

@@ -14,9 +14,27 @@ from drf_yasg.utils import swagger_auto_schema
 from staff.api.serializers import (
     DoctorSerializer, NurseSerializer, StudentSerializer, DepartmentSerializer
 )
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 import logging
-
 logger = logging.getLogger(__name__)
+from rest_framework.views import exception_handler
+from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+def custom_exception_handler(exc, context):
+    response = exception_handler(exc, context)
+
+    if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
+        return Response({
+            "error": "Authentication required",
+            "message": "You must provide valid authentication credentials to access this endpoint. Please log in or include a valid token in the Authorization header.",
+            "status": 401
+        }, status=status.HTTP_401_UNAUTHORIZED)
+
+    return response
+
 
 
 class CreateDoctor(APIView):
@@ -218,11 +236,17 @@ class DoctorDetail(APIView):
     @swagger_auto_schema(tags=['doctor'])
     def get(self, request, pk):
         try:
-            doctor = Doctor.objects.get(pk=pk)
+            doctor = get_object_or_404(Doctor, pk=pk)
             serializer = DoctorSerializer(doctor)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Doctor.DoesNotExist:
-            return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Doctor not found",
+                "message": f"No doctor was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during doctor GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -230,14 +254,20 @@ class DoctorDetail(APIView):
     @swagger_auto_schema(request_body=DoctorSerializer, tags=['doctor'])
     def put(self, request, pk):
         try:
-            doctor = Doctor.objects.get(pk=pk)
+            doctor = get_object_or_404(Doctor, pk=pk)
             serializer = DoctorSerializer(doctor, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Doctor.DoesNotExist:
-            return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Doctor not found",
+                "message": f"No doctor was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during doctor PUT: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -245,11 +275,17 @@ class DoctorDetail(APIView):
     @swagger_auto_schema(tags=['doctor'])
     def delete(self, request, pk):
         try:
-            doctor = Doctor.objects.get(pk=pk)
+            doctor = get_object_or_404(Doctor, pk=pk)
             doctor.delete()
             return Response({"message": "Doctor deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-        except Doctor.DoesNotExist:
-            return Response({"error": "Doctor not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Doctor not found",
+                "message": f"No doctor was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during doctor DELETE: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -261,11 +297,17 @@ class NurseDetail(APIView):
     @swagger_auto_schema(tags=['nurse'])
     def get(self, request, pk):
         try:
-            nurse = Nurse.objects.get(pk=pk)
+            nurse = get_object_or_404(Nurse, pk=pk)
             serializer = NurseSerializer(nurse)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Nurse.DoesNotExist:
-            return Response({"error": "Nurse not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Nurse not found",
+                "message": f"No nurse was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during nurse GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -273,14 +315,20 @@ class NurseDetail(APIView):
     @swagger_auto_schema(request_body=NurseSerializer, tags=['nurse'])
     def put(self, request, pk):
         try:
-            nurse = Nurse.objects.get(pk=pk)
+            nurse = get_object_or_404(Nurse, pk=pk)
             serializer = NurseSerializer(nurse, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Nurse.DoesNotExist:
-            return Response({"error": "Nurse not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Nurse not found",
+                "message": f"No nurse was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during nurse PUT: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -288,15 +336,20 @@ class NurseDetail(APIView):
     @swagger_auto_schema(tags=['nurse'])
     def delete(self, request, pk):
         try:
-            nurse = Nurse.objects.get(pk=pk)
+            nurse = get_object_or_404(Nurse, pk=pk)
             nurse.delete()
             return Response({"message": "Nurse deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-        except Nurse.DoesNotExist:
-            return Response({"error": "Nurse not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Nurse not found",
+                "message": f"No nurse was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during nurse DELETE: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class StudentDetail(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctor]
@@ -304,11 +357,17 @@ class StudentDetail(APIView):
     @swagger_auto_schema(tags=['student'])
     def get(self, request, pk):
         try:
-            student = Student.objects.get(pk=pk)
+            student = get_object_or_404(Student, pk=pk)
             serializer = StudentSerializer(student)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Student.DoesNotExist:
-            return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Student not found",
+                "message": f"No student was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during student GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -316,14 +375,20 @@ class StudentDetail(APIView):
     @swagger_auto_schema(request_body=StudentSerializer, tags=['student'])
     def put(self, request, pk):
         try:
-            student = Student.objects.get(pk=pk)
+            student = get_object_or_404(Student, pk=pk)
             serializer = StudentSerializer(student, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Student.DoesNotExist:
-            return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Student not found",
+                "message": f"No student was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during student PUT: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -331,11 +396,17 @@ class StudentDetail(APIView):
     @swagger_auto_schema(tags=['student'])
     def delete(self, request, pk):
         try:
-            student = Student.objects.get(pk=pk)
+            student = get_object_or_404(Student, pk=pk)
             student.delete()
             return Response({"message": "Student deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-        except Student.DoesNotExist:
-            return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Student not found",
+                "message": f"No student was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during student DELETE: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -347,11 +418,17 @@ class DepartmentDetail(APIView):
     @swagger_auto_schema(tags=['department'])
     def get(self, request, pk):
         try:
-            department = Department.objects.get(pk=pk)
+            department = get_object_or_404(Department, pk=pk)
             serializer = DepartmentSerializer(department)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Department.DoesNotExist:
-            return Response({"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Department not found",
+                "message": f"No department was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during department GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -359,14 +436,20 @@ class DepartmentDetail(APIView):
     @swagger_auto_schema(request_body=DepartmentSerializer, tags=['department'])
     def put(self, request, pk):
         try:
-            department = Department.objects.get(pk=pk)
+            department = get_object_or_404(Department, pk=pk)
             serializer = DepartmentSerializer(department, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Department.DoesNotExist:
-            return Response({"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Department not found",
+                "message": f"No department was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during department PUT: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -374,11 +457,17 @@ class DepartmentDetail(APIView):
     @swagger_auto_schema(tags=['department'])
     def delete(self, request, pk):
         try:
-            department = Department.objects.get(pk=pk)
+            department = get_object_or_404(Department, pk=pk)
             department.delete()
             return Response({"message": "Department deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-        except Department.DoesNotExist:
-            return Response({"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Http404:
+            return Response({
+                "error": "Department not found",
+                "message": f"No department was found with the provided ID ({pk}). Please verify and try again.",
+                "status": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             logger.exception(f"Unexpected error during department DELETE: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
