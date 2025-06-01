@@ -7,7 +7,7 @@ class Role(models.Model):
     def __str__(self):
         return self.name
 
-class User(AbstractUser):  # Custom user model
+class User(AbstractUser): 
     role = models.CharField(
         max_length=10,
         choices=[
@@ -20,20 +20,34 @@ class User(AbstractUser):  # Custom user model
     )
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    
     groups = models.ManyToManyField(
         'auth.Group',
-        related_name='customuser_set', 
+        related_name='customuser_set',
         blank=True,
         help_text='Groups this user belongs to.',
         verbose_name='groups',
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
-        related_name='customuser_permissions', 
+        related_name='customuser_permissions',
         blank=True,
         help_text='Specific permissions for this user.',
         verbose_name='user permissions',
     )
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    @name.setter
+    def name(self, value):
+        parts = value.split()
+        self.first_name = parts[0]
+        self.last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
 
 # class Permission(models.Model):
 #     name = models.CharField(max_length=100, unique=True)

@@ -11,14 +11,19 @@ class RoleSerializer(serializers.ModelSerializer):
 #         fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = [ 'username', 'email', 'phone', 'address']
+        fields = ['username', 'email', 'phone', 'address', 'name']
         read_only_fields = ['id']
         extra_kwargs = {
             'username': {'required': True},
             'email': {'required': True},
         }
-        
+
+    def get_name(self, obj):
+        return obj.name
+
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
