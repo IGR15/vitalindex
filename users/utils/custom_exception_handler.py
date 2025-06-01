@@ -8,8 +8,8 @@ def custom_exception_handler(exc, context):
 
     if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
         return Response({
-            "error": "Authentication required",
-            "message": "You must provide valid authentication credentials to access this endpoint. Please log in or include a valid token in the Authorization header.",
+            "error": "Passwords do not match",
+            "message": "The provided passwords do not match. Please ensure that both password fields are identical ",
             "status": 401
         }, status=status.HTTP_401_UNAUTHORIZED)
 

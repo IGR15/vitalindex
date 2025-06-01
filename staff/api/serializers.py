@@ -59,19 +59,19 @@ class NurseSerializer(serializers.ModelSerializer):
             'department',
             'assigned_shift'
         ]
+    
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user_data['role'] = 'Nurse' 
         user = User.objects.create(**user_data)
-        doctor = Student.objects.create(user=user, **validated_data)
-        return Nurse
-    
+        nurse = Nurse.objects.create(user=user, **validated_data)
+        return nurse
+
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})
         user = instance.user
 
         for attr, value in user_data.items():
-            # Prevent changing role externally
             if attr != 'role':
                 setattr(user, attr, value)
         user.save()
@@ -80,6 +80,7 @@ class NurseSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
     
 
 
@@ -94,19 +95,19 @@ class StudentSerializer(serializers.ModelSerializer):
             'academic_course',
             'academic_year'
         ]
+    
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user_data['role'] = 'Student' 
         user = User.objects.create(**user_data)
-        doctor = Student.objects.create(user=user, **validated_data)
-        return Student
-    
+        student = Student.objects.create(user=user, **validated_data)
+        return student
+
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})
         user = instance.user
 
         for attr, value in user_data.items():
-            # Prevent changing role externally
             if attr != 'role':
                 setattr(user, attr, value)
         user.save()
