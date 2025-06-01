@@ -41,6 +41,12 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
 }
+ASGI_APPLICATION = 'vitalindex.asgi.application'  # Adjust if your project folder is named differently
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 
 INSTALLED_APPS = [
@@ -64,6 +70,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
+    'channels',  
+    'notifications',
     
 ]
 SWAGGER_SETTINGS = {

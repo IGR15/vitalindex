@@ -11,6 +11,9 @@ from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from notifications.handlers import send_message
+from users.models import User
+
 class CreateReport(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctor]
 
@@ -19,7 +22,16 @@ class CreateReport(APIView):
         try:
             serializer = ReportSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save()
+                report = serializer.save()  
+
+                doctors = User.objects.filter(role='Doctor')
+                for doctor in doctors:
+                    send_message(
+                        f"New report published by Dr. {request.user.name}",  
+                        doctor,  
+                        'report_published'  
+                    )
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:

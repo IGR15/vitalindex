@@ -7,7 +7,11 @@ from staff.models import Doctor, Department
 from reports.models import Report
 from datetime import date
 from rest_framework_simplejwt.tokens import RefreshToken
+from notifications.models import Notification
 
+# ✅ Add this:
+from asgiref.testing import ApplicationCommunicator
+from channels.layers import get_channel_layer
 
 class ReportAPITest(TestCase):
     def setUp(self):
@@ -47,6 +51,13 @@ class ReportAPITest(TestCase):
             report_content="Initial content"
         )
 
+        self.channel_layer = get_channel_layer()
+        if self.channel_layer is None:
+            from channels.layers import InMemoryChannelLayer
+            self.channel_layer = InMemoryChannelLayer()
+            import channels
+            channels.layers.channel_layers = {"default": self.channel_layer}
+
     def test_create_report_success(self):
         payload = {
             "report_title": "Heart Case",
@@ -56,8 +67,15 @@ class ReportAPITest(TestCase):
             "patient_id": self.patient.id
         }
         response = self.client.post(reverse('create-report'), data=payload)
+        print("Response data:", response.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['report_title'], "Heart Case")
+
+        notifications = Notification.objects.filter(user=self.user)
+        self.assertTrue(notifications.exists(), "No notification created for doctor")
+        latest_notification = notifications.latest('created_at')
+        self.assertIn("New report published", latest_notification.content)  
+        self.assertFalse(latest_notification.is_read)   
 
     def test_update_report_success(self):
         payload = {

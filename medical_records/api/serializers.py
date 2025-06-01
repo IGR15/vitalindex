@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from medical_records.models import MedicalRecord,Vital
-from patients.api.serializers import PatientSerializer
 from patients.models import Patient
 
 class VitalsInlineSerializer(serializers.ModelSerializer):
