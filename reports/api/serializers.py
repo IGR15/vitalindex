@@ -6,6 +6,9 @@ from patients.models import Patient
 from medical_records.models import MedicalRecord
 
 class ReportSerializer(serializers.ModelSerializer):
+    doctor_id = serializers.PrimaryKeyRelatedField(source='doctor', read_only=True)
+    doctor_name = serializers.CharField(source='doctor.user.username', read_only=True)
+
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
     modified_by_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='modified_by', required=False, allow_null=True)
@@ -16,14 +19,14 @@ class ReportSerializer(serializers.ModelSerializer):
         required=False,
         write_only=True
     )
-
     reviewed_by = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Report
         fields = [
             'report_id',
-            # 'doctor_id', 
+            'doctor_id',  # <== Now you will see doctor_id in GET ✅
+            'doctor_name',  # <== Optional: shows name
             'patient_id',
             'medical_record_id',
             'report_title',
