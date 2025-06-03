@@ -13,7 +13,7 @@ from .serializers import (
 )
 
 class SearchView(APIView):
-    permission_classes = [IsAuthenticated]  # Enforce token auth
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="Global search across Reports and Patients. Pass query string as 'q' parameter.",
@@ -31,11 +31,27 @@ class SearchView(APIView):
                 properties={
                     'reports': openapi.Schema(
                         type=openapi.TYPE_ARRAY,
-                        items=openapi.Items(ref='#/components/schemas/ReportSearch')
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'report_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                'report_title': openapi.Schema(type=openapi.TYPE_STRING),
+                                'similarity': openapi.Schema(type=openapi.TYPE_NUMBER, format='float')
+                            }
+                        )
                     ),
                     'patients': openapi.Schema(
                         type=openapi.TYPE_ARRAY,
-                        items=openapi.Items(ref='#/components/schemas/PatientSearch')
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'patient_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                'first_name': openapi.Schema(type=openapi.TYPE_STRING),
+                                'last_name': openapi.Schema(type=openapi.TYPE_STRING),
+                                'full_name': openapi.Schema(type=openapi.TYPE_STRING),
+                                'similarity': openapi.Schema(type=openapi.TYPE_NUMBER, format='float')
+                            }
+                        )
                     )
                 }
             ),
