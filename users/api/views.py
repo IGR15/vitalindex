@@ -25,7 +25,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token['role'] = user.role
+        token['role'] = user.role or 'Admin' if user.is_superuser else None
         token['username'] = user.username
         token['email'] = user.email
         return token
@@ -34,7 +34,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         try:
             data = super().validate(attrs)
             data.update({
-                'role': self.user.role,
+                'role': self.user.role or 'Admin' if self.user.is_superuser else None,
                 'username': self.user.username,
                 'email': self.user.email
             })
