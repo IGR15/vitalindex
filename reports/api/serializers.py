@@ -6,7 +6,6 @@ from patients.models import Patient
 from medical_records.models import MedicalRecord
 
 class ReportSerializer(serializers.ModelSerializer):
-    doctor_id = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all(), source='doctor')
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
     modified_by_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='modified_by', required=False, allow_null=True)
@@ -24,7 +23,7 @@ class ReportSerializer(serializers.ModelSerializer):
         model = Report
         fields = [
             'report_id',
-            'doctor_id',
+            # 'doctor_id', 
             'patient_id',
             'medical_record_id',
             'report_title',
@@ -50,7 +49,6 @@ class ReportSerializer(serializers.ModelSerializer):
         if reviewed_by:
             report.reviewed_by.set(reviewed_by)
         return report
-
 
     def update(self, instance, validated_data):
         reviewed_by = validated_data.pop('reviewed_by', None)
