@@ -72,6 +72,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'channels',  
     'notifications',
+    'core',
+
     
 ]
 SWAGGER_SETTINGS = {
