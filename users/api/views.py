@@ -25,7 +25,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token['role'] = user.role or 'Admin' if user.is_superuser else None
+        token['role'] = user.role.name if user.role else ('Admin' if user.is_superuser else None)
         token['username'] = user.username
         token['email'] = user.email
         return token
@@ -34,13 +34,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         try:
             data = super().validate(attrs)
             data.update({
-                'role': self.user.role or 'Admin' if self.user.is_superuser else None,
+                'role': self.user.role.name if self.user.role else ('Admin' if self.user.is_superuser else None),
                 'username': self.user.username,
                 'email': self.user.email
             })
             return data
         except AuthenticationFailed as e:
-            # Customize error response when credentials are wrong
             raise AuthenticationFailed({
                 "error": "Passwords do not match",
                 "message": "The provided passwords do not match. Please ensure that both password fields are identical and meet the minimum requirements (e.g., at least 8 characters, including a number and a special character).",

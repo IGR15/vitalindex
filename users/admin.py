@@ -4,6 +4,7 @@ from .models import User, Role
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    
     fieldsets = BaseUserAdmin.fieldsets + (
         (None, {'fields': ('role', 'phone', 'address')}),
     )
@@ -11,17 +12,15 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('username', 'email', 'role__name')
     list_filter = ('role', 'is_staff', 'is_superuser', 'is_active')
 
+    def save_model(self, request, obj, form, change):
+        # Auto-assign 'Admin' role for superuser
+        if obj.is_superuser:
+            admin_role = Role.objects.filter(name='Admin').first()
+            if admin_role:
+                obj.role = admin_role
+        obj.save()
+
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     search_fields = ('name',)
-
-# @admin.register(Permission)
-# class PermissionAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'name', 'level')
-#     search_fields = ('name',)
-
-# @admin.register(UserRolePermission)
-# class UserRolePermissionAdmin(admin.ModelAdmin):
-#     list_display = ('role', 'permission')
-#     search_fields = ('role__name', 'permission__name')
