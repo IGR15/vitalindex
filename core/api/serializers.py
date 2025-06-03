@@ -19,7 +19,11 @@ class ReportSearchSerializer(serializers.ModelSerializer):
 
 class PatientSearchSerializer(serializers.ModelSerializer):
     similarity = serializers.FloatField()
+    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
-        fields = ['patient_id', 'first_name', 'last_name', 'similarity']
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'similarity']
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
