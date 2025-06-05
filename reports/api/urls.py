@@ -2,7 +2,8 @@ from django.urls import path
 from reports.api.views import (
     CreateReport, ReportList, ReportDetail,
     ReportByPatient, ReportByDoctor,
-    PublicReportsView, ReportViewCountView
+    PublicReportsView, ReportViewCountView,
+    RecordViewReportView
 )
 
 urlpatterns = [
@@ -12,6 +13,8 @@ urlpatterns = [
     
     path('reports/patient/', ReportByPatient.as_view(), name='report-by-patient'),
     path('reports/doctor/', ReportByDoctor.as_view(), name='report-by-doctor'),
+
+    path('reports/view/<int:report_id>/', RecordViewReportView.as_view(), name='report-view-record'),
 
     path('reports/public/', PublicReportsView.as_view(), name='public-reports'),
     path('reports/view-count/<int:report_id>/', ReportViewCountView.as_view(), name='report-view-count'),

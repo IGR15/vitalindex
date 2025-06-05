@@ -200,3 +200,23 @@ class ReportViewCountView(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+class RecordViewReportView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
+
+    @swagger_auto_schema(tags=['Reports'])
+    def post(self, request, report_id):
+        try:
+            report = get_object_or_404(Report, report_id=report_id)
+            user = request.user
+
+            report.viewed_by.add(user)
+
+            return Response(
+                {"message": f"User {user.username} viewed report {report_id}."},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
