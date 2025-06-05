@@ -14,13 +14,14 @@ class ReportSerializer(serializers.ModelSerializer):
 
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
 
-    reviewed_by_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Doctor.objects.all(),
+    # Replace reviewed_by with viewed_by:
+    viewed_by_ids = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
         many=True,
         required=False,
         write_only=True
     )
-    reviewed_by = serializers.StringRelatedField(many=True, read_only=True)
+    viewed_by = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Report
@@ -36,8 +37,8 @@ class ReportSerializer(serializers.ModelSerializer):
             'report_content',
             'report_file',
             'doctor_signature',
-            'reviewed_by_ids',
-            'reviewed_by',
+            'viewed_by_ids',
+            'viewed_by',
             'is_public',
             'keywords',
             'related_studies',
@@ -51,10 +52,10 @@ class ReportSerializer(serializers.ModelSerializer):
         return f"{obj.patient.first_name} {obj.patient.last_name}"
 
     def create(self, validated_data):
-        reviewed_by = validated_data.pop('reviewed_by_ids', [])
+        viewed_by = validated_data.pop('viewed_by_ids', [])
         report = Report.objects.create(**validated_data)
-        if reviewed_by:
-            report.reviewed_by.set(reviewed_by)
+        if viewed_by:
+            report.viewed_by.set(viewed_by)
         return report
 
     def update(self, instance, validated_data):
@@ -67,12 +68,12 @@ class ReportSerializer(serializers.ModelSerializer):
                     'You do not have permission to modify this report.'
                 )
 
-        reviewed_by = validated_data.pop('reviewed_by_ids', None)
+        viewed_by = validated_data.pop('viewed_by_ids', None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        if reviewed_by is not None:
-            instance.reviewed_by.set(reviewed_by)
+        if viewed_by is not None:
+            instance.viewed_by.set(viewed_by)
 
         instance.version += 1
         if user:

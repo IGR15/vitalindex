@@ -186,15 +186,17 @@ class PublicReportsView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ReviewedReportsView(APIView):
+class ReportViewCountView(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctor]
 
     @swagger_auto_schema(tags=['Reports'])
-    def get(self, request, doctor_id):
+    def get(self, request, report_id):
         try:
-            doctor = get_object_or_404(Doctor, doctor_id=doctor_id)
-            reports = Report.objects.filter(reviewed_by=doctor)
-            serializer = ReportSerializer(reports, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            report = get_object_or_404(Report, report_id=report_id)
+            view_count = report.viewed_by.count()
+            return Response(
+                {"report_id": report_id, "view_count": view_count},
+                status=status.HTTP_200_OK
+            )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

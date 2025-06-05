@@ -23,7 +23,7 @@ class Report(models.Model):
     report_file = models.FileField(upload_to='reports/', null=True, blank=True)
     doctor_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
 
-    reviewed_by = models.ManyToManyField(Doctor, related_name="reviewed_reports", blank=True)
+    viewed_by = models.ManyToManyField(User, related_name="viewed_reports", blank=True)
 
     is_public = models.BooleanField(default=False, help_text="Mark if this report is shareable")
 
