@@ -105,23 +105,28 @@ class ReportDetail(APIView):
 class ReportByPatient(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
-    @swagger_auto_schema(tags=['Reports'])
+    patient_param = openapi.Parameter(
+        'patient_name', openapi.IN_QUERY,
+        description="Patient's first name to filter reports",
+        type=openapi.TYPE_STRING,
+        required=True
+    )
+
+    @swagger_auto_schema(manual_parameters=[patient_param], tags=['Reports'])
     def get(self, request):
         try:
-            patient_id = request.query_params.get('patient_id')
             patient_name = request.query_params.get('patient_name')
 
-            if patient_id:
-                reports = Report.objects.filter(patient__patient_id=patient_id)
-            elif patient_name:
-                reports = Report.objects.filter(patient__first_name__icontains=patient_name)
-            else:
-                return Response({"error": "Provide patient_id or patient_name"}, status=status.HTTP_400_BAD_REQUEST)
+            if not patient_name:
+                return Response({"error": "Parameter 'patient_name' is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+            reports = Report.objects.filter(patient__first_name__icontains=patient_name)
             serializer = ReportSerializer(reports, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class ReportByDoctor(APIView):
