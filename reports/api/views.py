@@ -39,8 +39,6 @@ class CreateReport(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
 class ReportList(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
@@ -52,7 +50,6 @@ class ReportList(APIView):
             return Response(serializer.data)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class ReportDetail(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
@@ -101,7 +98,6 @@ class ReportDetail(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 class ReportByPatient(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
@@ -127,8 +123,6 @@ class ReportByPatient(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
 class ReportByDoctor(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
 
@@ -143,12 +137,41 @@ class ReportByDoctor(APIView):
     def get(self, request):
         try:
             doctor_name = request.query_params.get('doctor_name')
+
+            if not doctor_name:
+                return Response({"error": "Parameter 'doctor_name' is required."}, status=status.HTTP_400_BAD_REQUEST)
+
             reports = Report.objects.filter(doctor__user__username__icontains=doctor_name)
             serializer = ReportSerializer(reports, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PublicReportsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=['Reports'])
+    def get(self, request):
+        try:
+            public_reports = Report.objects.filter(is_public=True)
+            serializer = ReportSerializer(public_reports, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class ReviewedReportsView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
+
+    @swagger_auto_schema(tags=['Reports'])
+    def get(self, request, doctor_id):
+        try:
+            doctor = get_object_or_404(Doctor, doctor_id=doctor_id)
+            reports = Report.objects.filter(reviewed_by=doctor)
+            serializer = ReportSerializer(reports, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PublicReportsView(APIView):
     permission_classes = [IsAuthenticated]

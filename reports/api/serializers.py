@@ -10,6 +10,8 @@ class ReportSerializer(serializers.ModelSerializer):
     doctor_name = serializers.CharField(source='doctor.user.username', read_only=True)
 
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
+    patient_name = serializers.SerializerMethodField()
+
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
 
     reviewed_by_ids = serializers.PrimaryKeyRelatedField(
@@ -24,9 +26,10 @@ class ReportSerializer(serializers.ModelSerializer):
         model = Report
         fields = [
             'report_id',
-            'doctor_id',  # <== Now you will see doctor_id in GET ✅
-            'doctor_name',  # <== Optional: shows name
+            'doctor_id',
+            'doctor_name',
             'patient_id',
+            'patient_name',
             'medical_record_id',
             'report_title',
             'report_type',
@@ -43,6 +46,9 @@ class ReportSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['version', 'created_at', 'updated_at']
+
+    def get_patient_name(self, obj):
+        return f"{obj.patient.first_name} {obj.patient.last_name}"
 
     def create(self, validated_data):
         reviewed_by = validated_data.pop('reviewed_by_ids', [])
