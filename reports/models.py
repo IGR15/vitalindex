@@ -31,7 +31,6 @@ class Report(models.Model):
     related_studies = models.TextField(blank=True, help_text="Links or references to studies")
 
     version = models.PositiveIntegerField(default=1)
-    modified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="modified_reports")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

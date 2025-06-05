@@ -87,11 +87,47 @@ class ReportAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['report_title'], "Updated Report Title")
 
+    def test_doctor_cannot_update_unowned_report(self):
+        other_user = User.objects.create_user(
+            username='otherdoc', password='password', email='other@example.com', role='Doctor'
+        )
+        Doctor.objects.create(
+            user=other_user,
+            specialization="Neurology",
+            license_number="DOC999999",
+            joining_date=date(2023, 1, 1),
+            department=self.department
+        )
+        refresh = RefreshToken.for_user(other_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        payload = {"report_title": "Hacked"}
+        url = reverse('report-detail', args=[self.report.report_id])
+        response = self.client.put(url, data=payload)
+        self.assertEqual(response.status_code, 403)
+
     def test_delete_report_success(self):
         url = reverse('report-detail', args=[self.report.report_id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 204)
         self.assertFalse(Report.objects.filter(report_id=self.report.report_id).exists())
+
+    def test_doctor_cannot_delete_unowned_report(self):
+        other_user = User.objects.create_user(
+            username='otherdoc2', password='password', email='other2@example.com', role='Doctor'
+        )
+        Doctor.objects.create(
+            user=other_user,
+            specialization="Neurology",
+            license_number="DOC888888",
+            joining_date=date(2023, 1, 1),
+            department=self.department
+        )
+        refresh = RefreshToken.for_user(other_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        url = reverse('report-detail', args=[self.report.report_id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 403)
 
     def test_create_report_invalid_data(self):
         payload = {

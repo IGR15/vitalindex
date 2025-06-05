@@ -11,7 +11,6 @@ class ReportSerializer(serializers.ModelSerializer):
 
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
-    modified_by_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='modified_by', required=False, allow_null=True)
 
     reviewed_by_ids = serializers.PrimaryKeyRelatedField(
         queryset=Doctor.objects.all(),
@@ -40,7 +39,6 @@ class ReportSerializer(serializers.ModelSerializer):
             'keywords',
             'related_studies',
             'version',
-            'modified_by_id',
             'created_at',
             'updated_at',
         ]
@@ -54,7 +52,16 @@ class ReportSerializer(serializers.ModelSerializer):
         return report
 
     def update(self, instance, validated_data):
-        reviewed_by = validated_data.pop('reviewed_by', None)
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+
+        if user and user.role == 'Doctor' and hasattr(user, 'doctor'):
+            if instance.doctor != user.doctor:
+                raise serializers.ValidationError(
+                    'You do not have permission to modify this report.'
+                )
+
+        reviewed_by = validated_data.pop('reviewed_by_ids', None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
@@ -62,5 +69,7 @@ class ReportSerializer(serializers.ModelSerializer):
             instance.reviewed_by.set(reviewed_by)
 
         instance.version += 1
+        if user:
+            instance.modified_by = user
         instance.save()
         return instance

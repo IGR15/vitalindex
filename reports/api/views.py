@@ -20,7 +20,7 @@ class CreateReport(APIView):
     @swagger_auto_schema(request_body=ReportSerializer, tags=['Reports'])
     def post(self, request):
         try:
-            serializer = ReportSerializer(data=request.data)
+            serializer = ReportSerializer(data=request.data, context={'request': request})
 
             if serializer.is_valid():
                 report = serializer.save(doctor=request.user.doctor)
@@ -70,7 +70,14 @@ class ReportDetail(APIView):
     def put(self, request, report_id):
         try:
             report = get_object_or_404(Report, report_id=report_id)
-            serializer = ReportSerializer(report, data=request.data, partial=True)
+
+            if request.user.role == 'Doctor' and getattr(request.user, 'doctor', None) != report.doctor:
+                return Response(
+                    {"error": "You do not have permission to modify this report."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            serializer = ReportSerializer(report, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -82,6 +89,13 @@ class ReportDetail(APIView):
     def delete(self, request, report_id):
         try:
             report = get_object_or_404(Report, report_id=report_id)
+
+            if request.user.role == 'Doctor' and getattr(request.user, 'doctor', None) != report.doctor:
+                return Response(
+                    {"error": "You do not have permission to modify this report."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
             report.delete()
             return Response({"message": "Report deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:

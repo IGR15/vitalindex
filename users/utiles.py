@@ -3,13 +3,13 @@ def check_user_permission_level(user, required_level):
         'Student': 1,
         'Nurse': 2,
         'Doctor': 3,
-        'AdminStrator': 4 
+        'Administrator': 4
     }
 
     if not user.is_authenticated:
         return False
 
-    # Treat Django staff/superuser as level 4 (AdminStrator)
+    
     if user.is_staff or user.is_superuser:
         return 4 >= required_level
 

@@ -10,8 +10,6 @@ from rest_framework.response import Response
 from users.permissions import (IsAdminOrDoctorOrNurse)
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import User,Role
-from users.utiles import check_user_permission_level
-from django.shortcuts import get_object_or_404
 from users.api.serializers import (UserSerializer,
                                    RoleSerializer,LogoutSerializer)
 from rest_framework_simplejwt.views import TokenObtainPairView
