@@ -24,6 +24,8 @@ class CreateReport(APIView):
 
             if serializer.is_valid():
                 report = serializer.save(doctor=request.user.doctor)
+
+                
                 doctors = User.objects.filter(role='Doctor')
                 for doctor in doctors:
                     send_message(
@@ -32,12 +34,14 @@ class CreateReport(APIView):
                         'report_published'
                     )
 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                response_serializer = ReportSerializer(report, context={'request': request})
+                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class ReportList(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurse]
