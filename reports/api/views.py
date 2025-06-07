@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from reports.models import Report
 from staff.models import Doctor
 from patients.models import Patient
-from reports.api.serializers import ReportSerializer
+from reports.api.serializers import ReportSerializer, ReportSerializerForPOST, ReportSerializerForPUT
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -17,10 +17,10 @@ from users.models import User
 class CreateReport(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctor]
 
-    @swagger_auto_schema(request_body=ReportSerializer, tags=['Reports'])
+    @swagger_auto_schema(request_body=ReportSerializerForPOST, tags=['Reports'])
     def post(self, request):
         try:
-            serializer = ReportSerializer(data=request.data, context={'request': request})
+            serializer = ReportSerializerForPOST(data=request.data, context={'request': request})
 
             if serializer.is_valid():
                 report = serializer.save(doctor=request.user.doctor)
@@ -63,7 +63,7 @@ class ReportDetail(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(request_body=ReportSerializer, tags=['Reports'])
+    @swagger_auto_schema(request_body=ReportSerializerForPUT, tags=['Reports'])
     def put(self, request, report_id):
         try:
             report = get_object_or_404(Report, report_id=report_id)
@@ -74,7 +74,7 @@ class ReportDetail(APIView):
                     status=status.HTTP_403_FORBIDDEN
                 )
 
-            serializer = ReportSerializer(report, data=request.data, partial=True, context={'request': request})
+            serializer = ReportSerializerForPUT(report, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
