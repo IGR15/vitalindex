@@ -10,27 +10,27 @@ class RoleSerializer(serializers.ModelSerializer):
 #         model = Permission
 #         fields = '__all__'
 
-class UserSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
+# class UserSerializer(serializers.ModelSerializer):
+#     name = serializers.SerializerMethodField()
 
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'phone', 'address', 'name']
-        read_only_fields = ['id']
-        extra_kwargs = {
-            'username': {'required': True},
-            'email': {'required': True},
-        }
+#     class Meta:
+#         model = User
+#         fields = ['username', 'email', 'phone', 'address', 'name']
+#         read_only_fields = ['id']
+#         extra_kwargs = {
+#             'username': {'required': True},
+#             'email': {'required': True},
+#         }
 
-    def get_name(self, obj):
-        return obj.name
+#     def get_name(self, obj):
+#         return obj.name
     
 class UserSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'phone', 'address', 'name']
+        fields = [ 'email', 'phone', 'address', 'name']
         read_only_fields = ['id']
         extra_kwargs = {
             'username': {'required': True},

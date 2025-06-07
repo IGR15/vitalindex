@@ -34,14 +34,16 @@ class DoctorSerializer(serializers.ModelSerializer):
         user = instance.user
 
         for attr, value in user_data.items():
-            if attr != 'role':
+             if attr != 'username' and attr != 'role':  
                 setattr(user, attr, value)
         user.save()
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
         instance.save()
         return instance
+
 
 class NurseSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=True)
