@@ -11,7 +11,7 @@ from users.permissions import (IsAdminOrDoctorOrNurse)
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import User,Role
 from users.api.serializers import (UserSerializer,
-                                   RoleSerializer,LogoutSerializer)
+                                   RoleSerializer,LogoutSerializer,UserSerializerForPUT)
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from drf_yasg.utils import swagger_auto_schema
@@ -94,7 +94,7 @@ class UserDetail(APIView):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
         return Response(serializer.data)
-    @swagger_auto_schema(request_body=UserSerializer, tags=['Users'])
+    @swagger_auto_schema(request_body=UserSerializerForPUT, tags=['Users'])
     def put(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
