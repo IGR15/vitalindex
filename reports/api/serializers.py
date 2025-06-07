@@ -10,16 +10,13 @@ openai.api_key = settings.OPENAI_API_KEY
 
 class ReportSerializerForPOST(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
-
-    # NO medical_record_id in input!
-    # Instead → we add a read_only computed field to show possible medical records for this patient
-    available_medical_records = serializers.SerializerMethodField()
+    available_medical_records = serializers.ListField(child=serializers.DictField(), read_only=True)
 
     class Meta:
         model = Report
         fields = [
             'patient_id',
-            'available_medical_records',  
+            'available_medical_records',
             'report_title',
             'report_type',
             'report_content',
@@ -39,13 +36,15 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
             patient_id = request.data.get('patient_id')
             if patient_id:
                 records = MedicalRecord.objects.filter(patient_id=patient_id).values('pk', 'diagnosis', 'created_date')
-                self.fields['available_medical_records'].get_available_medical_records = lambda _: [
+                self.fields['available_medical_records'].default = [
                     {
                         'id': r['pk'],
                         'diagnosis': r['diagnosis'],
                         'created_date': r['created_date']
                     } for r in records
                 ]
+            else:
+                self.fields['available_medical_records'].default = []
 
     def generate_keywords(self, content):
         """Call OpenAI API to generate keywords from content"""
