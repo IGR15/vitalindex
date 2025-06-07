@@ -7,8 +7,7 @@ from medical_records.models import MedicalRecord
 import openai
 from django.conf import settings
 openai.api_key = settings.OPENAI_API_KEY
-from openai import OpenAI
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
 
 class ReportSerializerForPOST(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
@@ -52,16 +51,16 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
         """Call OpenAI API (new style) to generate keywords from content"""
         prompt = f"Extract 5 to 10 comma-separated keywords from the following medical report content:\n\n{content}\n\nKeywords:"
 
-        response = client.chat.completions.create(
-            model="gpt-4o",  # you can also use "gpt-4" or "gpt-3.5-turbo"
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
             messages=[
                 {"role": "user", "content": prompt}
             ],
             max_tokens=60,
-            temperature=0.5,
+            temperature=0.5
         )
 
-        keywords_text = response.choices[0].message.content.strip()
+        keywords_text = response['choices'][0]['message']['content'].strip()
         return keywords_text
 
     def create(self, validated_data):
