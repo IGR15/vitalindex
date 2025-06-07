@@ -67,7 +67,7 @@ class UserSerializerForPUT(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'phone', 'address', 'name']
+        fields = [ 'email', 'phone', 'address', 'name']
         read_only_fields = ['username']
         extra_kwargs = {
             'email': {'required': True},
