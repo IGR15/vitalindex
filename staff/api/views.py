@@ -12,7 +12,7 @@ from smtplib import SMTPException
 from django.db import DatabaseError
 from drf_yasg.utils import swagger_auto_schema
 from staff.api.serializers import (
-    DoctorSerializer, NurseSerializer, StudentSerializer, DepartmentSerializer,DoctorSerializerForPUT
+    DoctorSerializer, NurseSerializer, StudentSerializer, DepartmentSerializer,DoctorSerializerForPUT,NurseSerializerForPUT,StudentSerializerForPUT
 )
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -296,11 +296,11 @@ class NurseDetail(APIView):
             logger.exception(f"Unexpected error during nurse GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(request_body=NurseSerializer, tags=['nurse'])
+    @swagger_auto_schema(request_body=NurseSerializerForPUT, tags=['nurse'])
     def put(self, request, pk):
         try:
             nurse = get_object_or_404(Nurse, pk=pk)
-            serializer = NurseSerializer(nurse, data=request.data)
+            serializer = NurseSerializerForPUT(nurse, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -356,11 +356,11 @@ class StudentDetail(APIView):
             logger.exception(f"Unexpected error during student GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(request_body=StudentSerializer, tags=['student'])
+    @swagger_auto_schema(request_body=StudentSerializerForPUT, tags=['student'])
     def put(self, request, pk):
         try:
             student = get_object_or_404(Student, pk=pk)
-            serializer = StudentSerializer(student, data=request.data)
+            serializer = StudentSerializerForPUT(student, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)

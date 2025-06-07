@@ -140,3 +140,56 @@ class StudentSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+    
+class NurseSerializerForPUT(serializers.ModelSerializer):
+    user = UserSerializerForPUT(required=True)
+
+    class Meta:
+        model = Nurse
+        fields = [
+            'nurse_id',
+            'user',
+            'department',
+            'assigned_shift'
+        ]
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user = instance.user
+
+        for attr, value in user_data.items():
+            if attr != 'username' and attr != 'role':
+                setattr(user, attr, value)
+        user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+class StudentSerializerForPUT(serializers.ModelSerializer):
+    user = UserSerializerForPUT(required=True)
+
+    class Meta:
+        model = Student
+        fields = [
+            'student_id',
+            'user',
+            'academic_course',
+            'academic_year'
+        ]
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user = instance.user
+
+        for attr, value in user_data.items():
+            if attr != 'username' and attr != 'role':
+                setattr(user, attr, value)
+        user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
