@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from staff.models import Department, Doctor, Nurse, Student
 from users.models import User
-from users.api.serializers import UserSerializer
+from users.api.serializers import UserSerializer,UserSerializerForPUT
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -43,6 +43,36 @@ class DoctorSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+class DoctorSerializerForPUT(serializers.ModelSerializer):
+    user = UserSerializerForPUT(required=True)
+
+    class Meta:
+        model = Doctor
+        fields = [
+            'doctor_id',
+            'user',
+            'specialization',
+            'license_number',
+            'joining_date',
+            'department'
+        ]
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user = instance.user
+
+        for attr, value in user_data.items():
+            if attr != 'username' and attr != 'role':  
+                setattr(user, attr, value)
+        user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
+
 
 
 class NurseSerializer(serializers.ModelSerializer):

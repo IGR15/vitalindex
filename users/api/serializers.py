@@ -44,7 +44,6 @@ class UserSerializer(serializers.ModelSerializer):
             method = request.method
 
             if method in ['PUT', 'PATCH']:
-                # On update, prevent sending username
                 self.fields.pop('username')
 
     def to_representation(self, instance):

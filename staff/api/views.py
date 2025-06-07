@@ -12,14 +12,12 @@ from smtplib import SMTPException
 from django.db import DatabaseError
 from drf_yasg.utils import swagger_auto_schema
 from staff.api.serializers import (
-    DoctorSerializer, NurseSerializer, StudentSerializer, DepartmentSerializer
+    DoctorSerializer, NurseSerializer, StudentSerializer, DepartmentSerializer,DoctorSerializerForPUT
 )
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 import logging
 logger = logging.getLogger(__name__)
-from rest_framework.views import exception_handler
-from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -237,11 +235,11 @@ class DoctorDetail(APIView):
             logger.exception(f"Unexpected error during doctor GET: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(request_body=DoctorSerializer, tags=['doctor'])
+    @swagger_auto_schema(request_body=DoctorSerializerForPUT, tags=['doctor'])
     def put(self, request, pk):
         try:
             doctor = get_object_or_404(Doctor, pk=pk)
-            serializer = DoctorSerializer(doctor, data=request.data)
+            serializer = DoctorSerializerForPUT(doctor, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
