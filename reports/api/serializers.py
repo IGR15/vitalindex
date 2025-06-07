@@ -7,6 +7,8 @@ from medical_records.models import MedicalRecord
 import openai
 from django.conf import settings
 openai.api_key = settings.OPENAI_API_KEY
+from openai.error import RateLimitError
+
 
 
 class ReportSerializerForPOST(serializers.ModelSerializer):
@@ -47,22 +49,23 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
             else:
                 self.fields['available_medical_records'].default = []
 
-    def generate_keywords(self, content):
-        """Call OpenAI API (new style) to generate keywords from content"""
-        prompt = f"Extract 5 to 10 comma-separated keywords from the following medical report content:\n\n{content}\n\nKeywords:"
+    def generate_keywords(content):
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "user", "content": f"Extract 5 to 10 comma-separated keywords from this medical report:\n\n{content}\n\nKeywords:"}
+                ],
+                max_tokens=60,
+                temperature=0.5
+            )
+            keywords_text = response['choices'][0]['message']['content'].strip()
+            return keywords_text
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=60,
-            temperature=0.5
-        )
-
-        keywords_text = response['choices'][0]['message']['content'].strip()
-        return keywords_text
-
+        except RateLimitError:
+            return "Keyword generation failed: quota exceeded."
+        except Exception as e:
+            return f"Keyword generation failed: {str(e)}"
     def create(self, validated_data):
         request = self.context.get('request')
         user = getattr(request, 'user', None)
