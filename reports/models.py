@@ -28,7 +28,7 @@ class Report(models.Model):
     is_public = models.BooleanField(default=False, help_text="Mark if this report is shareable")
 
     keywords = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
-    related_studies = models.TextField(blank=True, help_text="Links or references to studies")
+    related_studies = models.URLField(blank=True, help_text="Link or reference to study")
 
     version = models.PositiveIntegerField(default=1)
 

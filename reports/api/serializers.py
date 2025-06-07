@@ -14,7 +14,7 @@ class ReportSerializer(serializers.ModelSerializer):
 
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
 
-    # Replace reviewed_by with viewed_by:
+    # by default define it here:
     viewed_by_ids = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         many=True,
@@ -47,6 +47,14 @@ class ReportSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['version', 'created_at', 'updated_at']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request', None)
+        if request:
+            method = request.method
+            if method == 'POST':
+                self.fields.pop('viewed_by_ids')
 
     def get_patient_name(self, obj):
         return f"{obj.patient.first_name} {obj.patient.last_name}"
