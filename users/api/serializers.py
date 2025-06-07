@@ -30,12 +30,22 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [ 'email', 'phone', 'address', 'name']
+        fields = ['username', 'email', 'phone', 'address', 'name']
         read_only_fields = ['id']
         extra_kwargs = {
             'username': {'required': True},
             'email': {'required': True},
         }
+
+    def __init__(self, *args, **kwargs):
+        super(UserSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request', None)
+        if request:
+            method = request.method
+
+            if method in ['PUT', 'PATCH']:
+                # On update, prevent sending username
+                self.fields.pop('username')
 
     def to_representation(self, instance):
         """ Show 'name' as first + last """
