@@ -10,13 +10,16 @@ openai.api_key = settings.OPENAI_API_KEY
 
 class ReportSerializerForPOST(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
-    medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.none(), source='medical_record', required=False, allow_null=True)
+
+    # NO medical_record_id in input!
+    # Instead → we add a read_only computed field to show possible medical records for this patient
+    available_medical_records = serializers.SerializerMethodField()
 
     class Meta:
         model = Report
         fields = [
             'patient_id',
-            'medical_record_id',
+            'available_medical_records',  
             'report_title',
             'report_type',
             'report_content',
@@ -26,22 +29,30 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
             'related_studies'
         ]
 
+    def get_available_medical_records(self, obj):
+        return []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         request = self.context.get('request', None)
-        if request and request.method in ['POST', 'PUT', 'PATCH']:
+        if request and request.method == 'POST':
             patient_id = request.data.get('patient_id')
             if patient_id:
-                self.fields['medical_record_id'].queryset = MedicalRecord.objects.filter(patient_id=patient_id)
-            else:
-                self.fields['medical_record_id'].queryset = MedicalRecord.objects.none()
+                records = MedicalRecord.objects.filter(patient_id=patient_id).values('pk', 'diagnosis', 'created_date')
+                self.fields['available_medical_records'].get_available_medical_records = lambda _: [
+                    {
+                        'id': r['pk'],
+                        'diagnosis': r['diagnosis'],
+                        'created_date': r['created_date']
+                    } for r in records
+                ]
 
     def generate_keywords(self, content):
         """Call OpenAI API to generate keywords from content"""
         prompt = f"Extract 5 to 10 comma-separated keywords from the following medical report content:\n\n{content}\n\nKeywords:"
         
         response = openai.ChatCompletion.create(
-            model="gpt-4o",  # or "gpt-4" or "gpt-3.5-turbo"
+            model="gpt-4o",
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -60,13 +71,17 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
 
         validated_data['doctor'] = user.doctor
 
-        # Auto-generate keywords
         content = validated_data.get('report_content', '')
         keywords = self.generate_keywords(content)
         validated_data['keywords'] = keywords
 
+        patient = validated_data['patient']
+        first_record = MedicalRecord.objects.filter(patient=patient).first()
+        validated_data['medical_record'] = first_record
+
         report = Report.objects.create(**validated_data)
         return report
+
 
 
 class ReportSerializer(serializers.ModelSerializer):
