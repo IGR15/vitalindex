@@ -33,9 +33,6 @@ ALLOWED_HOSTS = ['vitalindex.onrender.com']
 # vitalindex/settings.py
 
 
-from decouple import config
-
-OPENAI_API_KEY = config("OPENAI_API_KEY")
 
 
 # Application definition
