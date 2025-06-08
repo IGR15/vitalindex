@@ -4,12 +4,6 @@ from staff.models import Doctor
 from users.models import User
 from patients.models import Patient
 from medical_records.models import MedicalRecord
-import openai
-from django.conf import settings
-openai.api_key = settings.OPENAI_API_KEY
-from openai.error import RateLimitError
-
-
 
 class ReportSerializerForPOST(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
@@ -29,12 +23,9 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
             'related_studies'
         ]
 
-    def get_available_medical_records(self, obj):
-        return []
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        request = self.context.get('request', None)
+        request = self.context.get('request')
         if request and request.method == 'POST':
             patient_id = request.data.get('patient_id')
             if patient_id:
@@ -49,23 +40,6 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
             else:
                 self.fields['available_medical_records'].default = []
 
-    def generate_keywords(content):
-        try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "user", "content": f"Extract 5 to 10 comma-separated keywords from this medical report:\n\n{content}\n\nKeywords:"}
-                ],
-                max_tokens=60,
-                temperature=0.5
-            )
-            keywords_text = response['choices'][0]['message']['content'].strip()
-            return keywords_text
-
-        except RateLimitError:
-            return "Keyword generation failed: quota exceeded."
-        except Exception as e:
-            return f"Keyword generation failed: {str(e)}"
     def create(self, validated_data):
         request = self.context.get('request')
         user = getattr(request, 'user', None)
@@ -75,13 +49,13 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
 
         validated_data['doctor'] = user.doctor
 
-        content = validated_data.get('report_content', '')
-        keywords = self.generate_keywords(content)
-        validated_data['keywords'] = keywords
-
+        # Set the first medical record automatically
         patient = validated_data['patient']
         first_record = MedicalRecord.objects.filter(patient=patient).first()
         validated_data['medical_record'] = first_record
+
+        # Set keywords as empty for now
+        validated_data['keywords'] = ''
 
         report = Report.objects.create(**validated_data)
         return report
