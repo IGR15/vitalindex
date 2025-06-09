@@ -204,7 +204,7 @@ class RecentActivityView(APIView):
                 "details": f"Report for patient: {report.patient.first_name} {report.patient.last_name}"
             })
 
-        recent_records = MedicalRecord.objects.select_related('patient').order_by('-created_at')[:limit//2]
+        recent_records = MedicalRecord.objects.select_related('patient').order_by('-created_date')[:limit//2]
         for record in recent_records:
             activities.append({
                 "action": "Created Medical Record",
