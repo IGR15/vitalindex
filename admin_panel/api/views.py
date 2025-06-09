@@ -40,10 +40,10 @@ def format_uptime(seconds):
     minutes = (seconds % 3600) // 60
     return f"{days}d {hours}h {minutes}m"
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Admin Panel']))
+
 class SystemStatsView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
-
+    swagger_auto_schema(tags=['Admin Panel'])
     def get(self, request):
         total_users = User.objects.count()
         active_users = User.objects.filter(is_active=True).count()
@@ -107,10 +107,9 @@ class SystemStatsView(APIView):
             ]
         })
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Admin Panel']))
 class UserActivityView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
-
+    swagger_auto_schema(tags=['Admin Panel'])
     def get(self, request):
         days = int(request.GET.get('days', 30))
         role_filter = request.GET.get('role', None)
@@ -150,10 +149,9 @@ class UserActivityView(APIView):
             "users": UserActivitySerializer(users_data, many=True).data
         })
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Admin Panel']))
 class UserRoleStatsView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
-
+    swagger_auto_schema(tags=['Admin Panel'])
     def get(self, request):
         total_users = User.objects.count()
 
@@ -188,10 +186,9 @@ class UserRoleStatsView(APIView):
             "role_distribution": UserRoleStatsSerializer(role_data, many=True).data
         })
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Admin Panel']))
 class RecentActivityView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
-
+    swagger_auto_schema(tags=['Admin Panel'])
     def get(self, request):
         limit = int(request.GET.get('limit', 50))
 
@@ -224,10 +221,9 @@ class RecentActivityView(APIView):
             "total_shown": min(len(activities), limit)
         })
 
-@method_decorator(name='get', decorator=swagger_auto_schema(tags=['Admin Panel']))
 class ServerHealthView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
-
+    swagger_auto_schema(tags=['Admin Panel'])
     def get(self, request):
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
