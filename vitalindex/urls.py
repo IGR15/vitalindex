@@ -47,6 +47,8 @@ urlpatterns = [
     
     
     path('api/v1/notifications/', include('notifications.urls')),
+    path('api/v1/admin-panel/', include('admin_panel.urls')),
+
 
 
     path('api/v1/admin-api/', include('admin_panel.api.urls')),

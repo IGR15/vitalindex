@@ -62,6 +62,9 @@ class ReportDetail(APIView):
     def get(self, request, report_id):
         try:
             report = get_object_or_404(Report, report_id=report_id)
+            report.total_views += 1
+            report.viewed_by.add(request.user)  
+            report.save()
             serializer = ReportSerializer(report)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
