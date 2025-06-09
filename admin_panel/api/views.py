@@ -110,6 +110,7 @@ class SystemStatsView(APIView):
 class UserActivityView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     swagger_auto_schema(tags=['Admin Panel'])
+
     def get(self, request):
         days = int(request.GET.get('days', 30))
         role_filter = request.GET.get('role', None)
@@ -132,20 +133,27 @@ class UserActivityView(APIView):
                 ).count()
             else:
                 reports_count = 0
+
             records_count = MedicalRecord.objects.filter(
                 created_by=user,
                 created_date__gte=start_date
             ).count()
+            if user.is_superuser:
+                role_value = "Admin"
+            elif user.role:
+                role_value = user.role
+            else:
+                role_value = "Unknown"
 
             users_data.append({
                 "user_id": user.id,
                 "username": user.username,
                 "email": user.email,
-                "role": user.role or "Admin" if user.is_superuser else "Unknown",
+                "role": role_value,
                 "last_login": user.last_login,
                 "is_active": user.is_active,
                 "date_joined": user.date_joined,
-                "login_count": reports_count + records_count
+                
             })
 
         return Response({

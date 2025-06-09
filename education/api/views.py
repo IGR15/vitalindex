@@ -87,6 +87,33 @@ class SaveStudentBookmarkView(APIView):
             logger.exception(f"Unexpected error during SaveStudentBookmarkView POST: {str(e)}")
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={'medical_record_id': openapi.Schema(type=openapi.TYPE_INTEGER)},
+            required=['medical_record_id']
+        ),
+        tags=['education']
+    )
+    def delete(self, request):
+        try:
+            record_id = request.data.get("medical_record_id")
+            if not record_id:
+                return Response({"detail": "Missing medical_record_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+            record = get_object_or_404(MedicalRecord, pk=record_id, is_public=True)
+
+            deleted, _ = SavedCaseStudy.objects.filter(student=request.user, medical_record=record).delete()
+
+            if deleted == 0:
+                return Response({"detail": "Bookmark not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response({"detail": "Bookmark removed."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Unexpected error during SaveStudentBookmarkView DELETE: {str(e)}")
+            return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 class MyBookmarkedRecordsView(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctorOrNurseOrStudent]

@@ -49,12 +49,9 @@ class ReportSerializerForPOST(serializers.ModelSerializer):
 
         validated_data['doctor'] = user.doctor
 
-        # Set the first medical record automatically
         patient = validated_data['patient']
         first_record = MedicalRecord.objects.filter(patient=patient).first()
         validated_data['medical_record'] = first_record
-
-        # Set keywords as empty for now
         validated_data['keywords'] = ''
 
         report = Report.objects.create(**validated_data)
