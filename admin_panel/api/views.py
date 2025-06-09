@@ -194,21 +194,19 @@ class RecentActivityView(APIView):
 
         activities = []
 
-        recent_reports = Report.objects.select_related('created_by', 'patient').order_by('-created_at')[:limit//2]
+        recent_reports = Report.objects.select_related('doctor', 'patient').order_by('-created_at')[:limit//2]
         for report in recent_reports:
             activities.append({
                 "timestamp": report.created_at,
-                "user": report.created_by.username if report.created_by else "System",
+                "user": report.doctor.user.username if report.doctor else "System",
                 "action": "Created Report",
                 "resource": f"Report #{report.report_id}",
                 "details": f"Report for patient: {report.patient.first_name} {report.patient.last_name}"
             })
 
-        recent_records = MedicalRecord.objects.select_related('created_by', 'patient').order_by('-created_at')[:limit//2]
+        recent_records = MedicalRecord.objects.select_related('patient').order_by('-created_at')[:limit//2]
         for record in recent_records:
             activities.append({
-                "timestamp": record.created_at,
-                "user": record.created_by.username if record.created_by else "System",
                 "action": "Created Medical Record",
                 "resource": f"Record #{record.record_id}",
                 "details": f"Medical record for patient: {record.patient.first_name} {record.patient.last_name}"
