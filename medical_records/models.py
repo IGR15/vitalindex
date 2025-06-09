@@ -4,7 +4,7 @@ from patients.models import Patient
 class MedicalRecord(models.Model):
     record_id = models.AutoField(primary_key=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="medical_records")
-    created_date = models.DateField(auto_now_add=True)
+    created_date = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateField(auto_now=True)
     diagnosis = models.TextField()
     treatment_plan = models.TextField()
