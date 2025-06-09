@@ -104,14 +104,6 @@ class ReportSerializerForPUT(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
 
-    viewed_by_ids = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-        many=True,
-        required=False,
-        write_only=True
-    )
-    viewed_by = serializers.StringRelatedField(many=True, read_only=True)
-
     class Meta:
         model = Report
         fields = [
@@ -122,31 +114,26 @@ class ReportSerializerForPUT(serializers.ModelSerializer):
             'report_content',
             'report_file',
             'doctor_signature',
-            'viewed_by_ids',
-            'viewed_by',
             'is_public',
-            'keywords',
             'related_studies'
         ]
 
     def update(self, instance, validated_data):
-        viewed_by = validated_data.pop('viewed_by_ids', None)
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+
+    
+        if user and user.role == 'Doctor' and hasattr(user, 'doctor'):
+            if instance.doctor != user.doctor:
+                raise serializers.ValidationError('You do not have permission to modify this report.')
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        if viewed_by is not None:
-            instance.viewed_by.set(viewed_by)
-
         instance.version += 1
-
-        request = self.context.get('request')
-        user = getattr(request, 'user', None)
-        if user:
-            instance.modified_by = user
-
         instance.save()
         return instance
+
 
 
 # class ReportSerializer(serializers.ModelSerializer):

@@ -152,30 +152,6 @@ class ReportByDoctor(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class PublicReportsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @swagger_auto_schema(tags=['Reports'])
-    def get(self, request):
-        try:
-            public_reports = Report.objects.filter(is_public=True)
-            serializer = ReportSerializer(public_reports, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class ReviewedReportsView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
-
-    @swagger_auto_schema(tags=['Reports'])
-    def get(self, request, doctor_id):
-        try:
-            doctor = get_object_or_404(Doctor, doctor_id=doctor_id)
-            reports = Report.objects.filter(reviewed_by=doctor)
-            serializer = ReportSerializer(reports, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PublicReportsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -215,7 +191,9 @@ class RecordViewReportView(APIView):
             report = get_object_or_404(Report, report_id=report_id)
             user = request.user
 
-            report.viewed_by.add(user)
+            if not report.viewed_by.filter(id=user.id).exists():
+                report.viewed_by.add(user)
+                report.save()
 
             return Response(
                 {"message": f"User {user.username} viewed report {report_id}."},
@@ -223,4 +201,5 @@ class RecordViewReportView(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
