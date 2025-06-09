@@ -122,14 +122,18 @@ class UserActivityView(APIView):
 
         users_data = []
         for user in users_queryset:
-            reports_count = Report.objects.filter(
-                created_by=user,
-                created_at__gte=start_date
-            ).count()
+            doctor_obj = getattr(user, 'doctor', None)
 
+            if doctor_obj:
+                reports_count = Report.objects.filter(
+                    doctor=doctor_obj,
+                    created_at__gte=start_date
+                ).count()
+            else:
+                reports_count = 0
             records_count = MedicalRecord.objects.filter(
                 created_by=user,
-                created_at__gte=start_date
+                created_date__gte=start_date
             ).count()
 
             users_data.append({
@@ -208,6 +212,7 @@ class RecentActivityView(APIView):
         for record in recent_records:
             activities.append({
                 'timestamp': record.created_date,
+                "user": record.created_by.username if record.created_by else "System", 
                 "action": "Created Medical Record",
                 "resource": f"Record #{record.record_id}",
                 "details": f"Medical record for patient: {record.patient.first_name} {record.patient.last_name}"

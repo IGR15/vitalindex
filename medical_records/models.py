@@ -1,9 +1,13 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from patients.models import Patient
+
+User = get_user_model()
 
 class MedicalRecord(models.Model):
     record_id = models.AutoField(primary_key=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="medical_records")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='medical_records')
     created_date = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateField(auto_now=True)
     diagnosis = models.TextField()
@@ -13,6 +17,7 @@ class MedicalRecord(models.Model):
 
     def __str__(self):
         return f"Record for {self.patient.name} - {self.created_date}"
+
 
 class Vital(models.Model):  
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name="vitals")
