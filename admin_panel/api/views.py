@@ -13,7 +13,7 @@ from staff.models import Doctor, Nurse, Student
 import psutil
 import shutil
 from drf_yasg.utils import swagger_auto_schema
-from django.utils.decorators import method_decorator
+from django.db.models import F
 from admin_panel.api.serializers import (
     SystemStatsSerializer,
     ServerStatusSerializer,
@@ -115,8 +115,9 @@ class UserActivityView(APIView):
         role_filter = request.GET.get('role', None)
 
         start_date = now() - timedelta(days=days)
-        users_queryset = User.objects.all()
-
+        users_queryset = User.objects.order_by(
+            F('last_login').desc(nulls_last=True)
+        )
         if role_filter:
             users_queryset = users_queryset.filter(role=role_filter)
 

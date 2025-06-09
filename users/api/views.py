@@ -16,6 +16,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
+from django.contrib.auth.models import update_last_login
 from rest_framework.exceptions import AuthenticationFailed
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -31,18 +32,24 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         try:
             data = super().validate(attrs)
+            
+            user = self.user  
+            update_last_login(None, user)
+
             data.update({
-                'role': self.user.role if self.user.role else ('Admin' if self.user.is_superuser else None),
-                'username': self.user.username,
-                'email': self.user.email
+                'role': user.role if user.role else ('Admin' if user.is_superuser else None),
+                'username': user.username,
+                'email': user.email
             })
             return data
+
         except AuthenticationFailed as e:
             raise AuthenticationFailed({
                 "error": "Passwords do not match",
-                "message": "The provided passwords do not match. Please ensure that both password fields are identical and meet the minimum requirements (e.g., at least 8 characters, including a number and a special character).",
+                "message": "The provided passwords do not match.",
                 "status": 400
             })
+
 
 
 
