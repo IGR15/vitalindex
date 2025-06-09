@@ -29,6 +29,7 @@ class Report(models.Model):
 
     keywords = models.CharField(max_length=255, blank=True, help_text="Comma-separated tags")
     related_studies = models.URLField(blank=True, help_text="Link or reference to study")
+    total_views = models.PositiveIntegerField(default=0)
 
     version = models.PositiveIntegerField(default=1)
 

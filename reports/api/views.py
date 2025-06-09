@@ -173,14 +173,16 @@ class ReportViewCountView(APIView):
     def get(self, request, report_id):
         try:
             report = get_object_or_404(Report, report_id=report_id)
-            view_count = report.viewed_by.count()
+
+            view_count = report.total_views 
+
             return Response(
                 {"report_id": report_id, "view_count": view_count},
                 status=status.HTTP_200_OK
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         
 class RecordViewReportView(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctor]
@@ -190,16 +192,16 @@ class RecordViewReportView(APIView):
         try:
             report = get_object_or_404(Report, report_id=report_id)
             user = request.user
-
-            if not report.viewed_by.filter(id=user.id).exists():
-                report.viewed_by.add(user)
-                report.save()
+            report.viewed_by.add(user)
+            report.total_views += 1
+            report.save()
 
             return Response(
-                {"message": f"User {user.username} viewed report {report_id}."},
+                {"message": f"User {user.username} viewed report {report_id}.", "total_views": report.total_views},
                 status=status.HTTP_200_OK
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
