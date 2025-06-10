@@ -153,7 +153,7 @@ class UserActivityView(APIView):
                 "last_login": user.last_login,
                 "is_active": user.is_active,
                 "date_joined": user.date_joined,
-                "records_count": records_count,
+                "login_count": reports_count + records_count,
                 
             })
 
