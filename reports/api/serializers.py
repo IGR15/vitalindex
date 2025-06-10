@@ -100,14 +100,12 @@ class ReportSerializer(serializers.ModelSerializer):
 class ReportSerializerForPUT(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
     available_medical_records = serializers.ListField(child=serializers.DictField(), read_only=True)
-    medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
 
     class Meta:
         model = Report
         fields = [
             'patient_id',
             'available_medical_records',
-            'medical_record_id',
             'report_title',
             'report_type',
             'report_content',
