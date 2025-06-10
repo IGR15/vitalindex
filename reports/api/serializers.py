@@ -99,12 +99,14 @@ class ReportSerializer(serializers.ModelSerializer):
 
 class ReportSerializerForPUT(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), source='patient')
+    available_medical_records = serializers.ListField(child=serializers.DictField(), read_only=True)
     medical_record_id = serializers.PrimaryKeyRelatedField(queryset=MedicalRecord.objects.all(), source='medical_record', required=False, allow_null=True)
 
     class Meta:
         model = Report
         fields = [
             'patient_id',
+            'available_medical_records',
             'medical_record_id',
             'report_title',
             'report_type',
@@ -115,11 +117,27 @@ class ReportSerializerForPUT(serializers.ModelSerializer):
             'related_studies'
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.method == 'PUT':
+            patient_id = request.data.get('patient_id')
+            if patient_id:
+                records = MedicalRecord.objects.filter(patient_id=patient_id).values('pk', 'diagnosis', 'created_date')
+                self.fields['available_medical_records'].default = [
+                    {
+                        'id': r['pk'],
+                        'diagnosis': r['diagnosis'],
+                        'created_date': r['created_date']
+                    } for r in records
+                ]
+            else:
+                self.fields['available_medical_records'].default = []
+
     def update(self, instance, validated_data):
         request = self.context.get('request')
         user = getattr(request, 'user', None)
 
-    
         if user and user.role == 'Doctor' and hasattr(user, 'doctor'):
             if instance.doctor != user.doctor:
                 raise serializers.ValidationError('You do not have permission to modify this report.')
@@ -130,6 +148,7 @@ class ReportSerializerForPUT(serializers.ModelSerializer):
         instance.version += 1
         instance.save()
         return instance
+
 
 
 
