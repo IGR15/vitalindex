@@ -20,7 +20,13 @@ class User(AbstractUser):
     )
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    
+
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+    ]
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
+
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='customuser_set',
@@ -48,7 +54,7 @@ class User(AbstractUser):
         parts = value.split()
         self.first_name = parts[0]
         self.last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
-
+ 
 # class Permission(models.Model):
 #     name = models.CharField(max_length=100, unique=True)
 #     level = models.IntegerField(choices=[

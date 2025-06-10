@@ -4,7 +4,12 @@ class Patient(models.Model):
     first_name = models.CharField(max_length=100, null=False, blank=False, default='First')
     last_name = models.CharField(max_length=100, null=False, blank=False, default='Last')
 
-    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+    ]
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
+
     address = models.TextField()
     phone = models.CharField(max_length=15, unique=True)
     email = models.EmailField(unique=True)
@@ -23,4 +28,3 @@ class Patient(models.Model):
         parts = value.split()
         self.first_name = parts[0]
         self.last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
-
